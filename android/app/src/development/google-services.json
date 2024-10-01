@@ -1,0 +1,371 @@
+{
+  "project_info": {
+    "project_number": "755949396350",
+    "firebase_url": "https://atvandbuggy-dev-default-rtdb.firebaseio.com",
+    "project_id": "atvandbuggy-dev",
+    "storage_bucket": "atvandbuggy-dev.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:755949396350:android:16691072f523998116d32f",
+        "android_client_info": {
+          "package_name": "com.atvandbuggy.dev"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "755949396350-0bp7k0m8lfrq9un5dkedgc721u34ja61.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.atvandbuggy.dev",
+            "certificate_hash": "307104f61d582d01b4e95c421341a8362a84abaa"
+          }
+        },
+        {
+          "client_id": "755949396350-3ljkhbi9aiqji358jd7vs68pu1km0bqm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.atvandbuggy.dev",
+            "certificate_hash": "fa63bb162b07ddbd40546422a1e10244fa51f6a5"
+          }
+        },
+        {
+          "client_id": "755949396350-8s3a9kightdimpplmb36d67933s0jc89.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.atvandbuggy.dev",
+            "certificate_hash": "1898f9f49d59e38d61ce52b0d37dc37f390d66aa"
+          }
+        },
+        {
+          "client_id": "755949396350-baivivascrvregnpnl3bm3j09mpfgaet.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.atvandbuggy.dev",
+            "certificate_hash": "a5a0077ed3c203d517bd79c767d884f1abf32e02"
+          }
+        },
+        {
+          "client_id": "755949396350-jmfr29bboenngkgpps76a544aph731vu.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.atvandbuggy.dev",
+            "certificate_hash": "9bbb3186b2189ef16d8f272bdab59362c395cbb4"
+          }
+        },
+        {
+          "client_id": "755949396350-88frhrg6nvi2ghefoughjsp9f7e9sqrb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCj9XFhKBEIlmyWkonT3Cq2TTKCH7Eu8Mo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "755949396350-88frhrg6nvi2ghefoughjsp9f7e9sqrb.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "755949396350-0icq83m7t56i4938p64eonja5lviju1m.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.atvandbuggyrep.dev"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:755949396350:android:c9b4a891eccc312e16d32f",
+        "android_client_info": {
+          "package_name": "com.atvandbuggydrivers.dev"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "755949396350-dtuatib48mokog70jqtb1tb3dre9gdph.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.atvandbuggydrivers.dev",
+            "certificate_hash": "9bbb3186b2189ef16d8f272bdab59362c395cbb4"
+          }
+        },
+        {
+          "client_id": "755949396350-hd5amp7ofn52lmbfi4cu50aplep4ot9b.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.atvandbuggydrivers.dev",
+            "certificate_hash": "589c08e06ad62b88b5cb4ec768e9649aeef0662d"
+          }
+        },
+        {
+          "client_id": "755949396350-p09nmdihfs44e7p6vi8p2bredvhrvq1v.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.atvandbuggydrivers.dev",
+            "certificate_hash": "2baf8f16bb02e74bae3079f3edde8bbc2c09bdbc"
+          }
+        },
+        {
+          "client_id": "755949396350-paoqiqn98mers91t1iv9500kqnj1gj7r.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.atvandbuggydrivers.dev",
+            "certificate_hash": "05faf3e58e0b45ab7e7b035954d40474ed370496"
+          }
+        },
+        {
+          "client_id": "755949396350-88frhrg6nvi2ghefoughjsp9f7e9sqrb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCj9XFhKBEIlmyWkonT3Cq2TTKCH7Eu8Mo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "755949396350-88frhrg6nvi2ghefoughjsp9f7e9sqrb.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "755949396350-0icq83m7t56i4938p64eonja5lviju1m.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.atvandbuggyrep.dev"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:755949396350:android:64bb4f3b9d20676216d32f",
+        "android_client_info": {
+          "package_name": "com.atvandbuggyrep.dev"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "755949396350-3k086srf7a3krssvk1khvi4f1jjf6gfr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.atvandbuggyrep.dev",
+            "certificate_hash": "38ed633239eca270c9046accab2577d0a3a603c8"
+          }
+        },
+        {
+          "client_id": "755949396350-4jp5bp43mfcchdokjjp6q2vrasnvgiid.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.atvandbuggyrep.dev",
+            "certificate_hash": "006219aed6f8db150173ff3693bcda08ee5acf8d"
+          }
+        },
+        {
+          "client_id": "755949396350-fg65lmihe4tt95ea695lir81ho28arul.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.atvandbuggyrep.dev",
+            "certificate_hash": "9bbb3186b2189ef16d8f272bdab59362c395cbb4"
+          }
+        },
+        {
+          "client_id": "755949396350-kd2ltlm2ak2ch0kr9g0k8vaiafk8bn8v.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.atvandbuggyrep.dev",
+            "certificate_hash": "589c08e06ad62b88b5cb4ec768e9649aeef0662d"
+          }
+        },
+        {
+          "client_id": "755949396350-88frhrg6nvi2ghefoughjsp9f7e9sqrb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCj9XFhKBEIlmyWkonT3Cq2TTKCH7Eu8Mo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "755949396350-88frhrg6nvi2ghefoughjsp9f7e9sqrb.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "755949396350-0icq83m7t56i4938p64eonja5lviju1m.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.atvandbuggyrep.dev"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:755949396350:android:f946c6b82c8e7bde16d32f",
+        "android_client_info": {
+          "package_name": "com.atvandbuggysupervisor.dev"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "755949396350-62sbuqbue138teu8shvcibcekvvsruh0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.atvandbuggysupervisor.dev",
+            "certificate_hash": "9bbb3186b2189ef16d8f272bdab59362c395cbb4"
+          }
+        },
+        {
+          "client_id": "755949396350-6e3mktj24qmfvoc3f53n5rkabs40e4pj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.atvandbuggysupervisor.dev",
+            "certificate_hash": "589c08e06ad62b88b5cb4ec768e9649aeef0662d"
+          }
+        },
+        {
+          "client_id": "755949396350-9h3lgth54oov6n4joqd2890phkls89a6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.atvandbuggysupervisor.dev",
+            "certificate_hash": "e9fd735eec9028e59ae5f655b14ff4cddcbea87a"
+          }
+        },
+        {
+          "client_id": "755949396350-qkr6bf0frqh8ls9ml78kublft2m9bsk8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.atvandbuggysupervisor.dev",
+            "certificate_hash": "1f410bf467e62771792560e29adf6933da6dcd17"
+          }
+        },
+        {
+          "client_id": "755949396350-qlh25o0u6p7gi3q5suir726ls7ui576t.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.atvandbuggysupervisor.dev",
+            "certificate_hash": "ea01f71b110e67842f43762783e9be3c8a0cc903"
+          }
+        },
+        {
+          "client_id": "755949396350-88frhrg6nvi2ghefoughjsp9f7e9sqrb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCj9XFhKBEIlmyWkonT3Cq2TTKCH7Eu8Mo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "755949396350-88frhrg6nvi2ghefoughjsp9f7e9sqrb.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "755949396350-0icq83m7t56i4938p64eonja5lviju1m.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.atvandbuggyrep.dev"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:755949396350:android:cad927d1aaa3682a16d32f",
+        "android_client_info": {
+          "package_name": "com.dev.atvandbuggysales"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "755949396350-88frhrg6nvi2ghefoughjsp9f7e9sqrb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCj9XFhKBEIlmyWkonT3Cq2TTKCH7Eu8Mo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "755949396350-88frhrg6nvi2ghefoughjsp9f7e9sqrb.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "755949396350-0icq83m7t56i4938p64eonja5lviju1m.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.atvandbuggyrep.dev"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:755949396350:android:7e0bc5b45faab03d16d32f",
+        "android_client_info": {
+          "package_name": "com.mycompany.atvandbuggyclonehassan"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "755949396350-88frhrg6nvi2ghefoughjsp9f7e9sqrb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCj9XFhKBEIlmyWkonT3Cq2TTKCH7Eu8Mo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "755949396350-88frhrg6nvi2ghefoughjsp9f7e9sqrb.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "755949396350-0icq83m7t56i4938p64eonja5lviju1m.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.atvandbuggyrep.dev"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
