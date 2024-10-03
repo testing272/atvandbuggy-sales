@@ -89,6 +89,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                   }));
                                 },
                                 title: getStarted),
+                            30.verticalSpace,
                           ],
                         ),
                       ),

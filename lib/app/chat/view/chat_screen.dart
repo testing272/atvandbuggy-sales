@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
@@ -6,7 +7,9 @@ import '../../../theme/app_theme.dart';
 import '../model/message_model.dart';
 
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key});
+  final String name;
+  final String profileUrl;
+  const ChatScreen({super.key, required this.name, required this.profileUrl});
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -16,7 +19,7 @@ class _ChatScreenState extends State<ChatScreen> {
   TextEditingController sendMessageController = TextEditingController();
   List<MessageModel> reveredMessages = [
     MessageModel(
-        message: 'I am fine',
+        message: 'I am fine.',
         messageId: '123436',
         isReceived: true,
         deleteForEveryOne: false,
@@ -34,13 +37,13 @@ class _ChatScreenState extends State<ChatScreen> {
         appBar: AppBar(
           title: Row(
             children: [
-              const CircleAvatar(
+              CircleAvatar(
                 radius: 20,
-                backgroundImage: AssetImage('assets/icons/david.png'),
+                backgroundImage: CachedNetworkImageProvider(widget.profileUrl),
               ),
               10.horizontalSpace,
-              const Text(
-                'Smeed Sathi',
+              Text(
+                widget.name,
                 style: TextStyle(fontWeight: FontWeight.w500, fontSize: 15),
               ),
             ],
@@ -108,11 +111,12 @@ class _ChatScreenState extends State<ChatScreen> {
                                           : MainAxisAlignment.end,
                                   children: [
                                     if (reveredMessages[index].isReceived)
-                                      const Padding(
+                                      Padding(
                                         padding: EdgeInsets.only(right: 10),
                                         child: CircleAvatar(
-                                          backgroundImage: AssetImage(
-                                              'assets/icons/david.png'),
+                                          backgroundImage:
+                                              CachedNetworkImageProvider(
+                                                  widget.profileUrl),
                                         ),
                                       ),
                                     Container(
@@ -176,6 +180,14 @@ class _ChatScreenState extends State<ChatScreen> {
                               MessageModel(
                                   message: sendMessageController.text.trim(),
                                   messageId: '12343',
+                                  deleteForEveryOne: false,
+                                  deleteForUser: false));
+                          reveredMessages.insert(
+                              0,
+                              MessageModel(
+                                  isReceived: true,
+                                  message: 'Hi, i am busy right now.',
+                                  messageId: '123',
                                   deleteForEveryOne: false,
                                   deleteForUser: false));
                           sendMessageController.clear();

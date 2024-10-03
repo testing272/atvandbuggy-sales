@@ -22,15 +22,15 @@ class ReferByController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> idValidReferralCode(String referralCode) async {
+  Future<int?> idValidReferralCode(String referralCode) async {
     try {
       QuerySnapshot querySnapshot = await _influenceReference
           .where('referral_code', isEqualTo: referralCode)
           .get();
-      return querySnapshot.docs.length > 0;
+      return querySnapshot.docs.first.get('level');
     } catch (e) {
       print("Error checking document existence: $e");
-      return false;
+      return null;
     }
   }
 }

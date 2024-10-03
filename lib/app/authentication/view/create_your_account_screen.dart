@@ -14,7 +14,9 @@ final _formKey = GlobalKey<FormState>();
 
 class CreateYourAccountScreen extends StatefulWidget {
   final String referredById;
-  const CreateYourAccountScreen({super.key, required this.referredById});
+  final int referredByLevel;
+  const CreateYourAccountScreen(
+      {super.key, required this.referredById, required this.referredByLevel});
 
   @override
   State<CreateYourAccountScreen> createState() =>
@@ -158,6 +160,7 @@ class _CreateYourAccountScreenState extends State<CreateYourAccountScreen> {
                                 firstNameController.text,
                                 lastNameController.text,
                                 widget.referredById,
+                                widget.referredByLevel,
                                 context);
                         if (response != null) {
                           Navigator.push(context,

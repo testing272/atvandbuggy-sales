@@ -8,9 +8,13 @@ class UserDataModel {
   final double? referralSale;
   final double? totalSale;
   final String? referredById;
+  final String? referredCode;
+  final int? level;
 
   UserDataModel(
       {required this.referredById,
+      required this.referredCode,
+      required this.level,
       required this.email,
       required this.name,
       required this.mySale,
@@ -22,6 +26,8 @@ class UserDataModel {
 
   factory UserDataModel.fromMap(Map data) {
     return UserDataModel(
+        level: data['level'],
+        referredCode: data['referral_code'],
         referredById: data['referred_by_id'],
         email: data['email'],
         name: data['name'],

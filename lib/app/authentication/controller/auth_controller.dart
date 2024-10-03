@@ -92,6 +92,7 @@ class AuthController {
       String firstName,
       String lastName,
       String referredById,
+      int referByLevel,
       BuildContext context) async {
     try {
       final response = await isUserAlreadyExistsWithThisReferralNameCode(
@@ -105,6 +106,7 @@ class AuthController {
           .createUserWithEmailAndPassword(email: email, password: password);
       User? user = userCredential.user;
       createUser(
+          referredByLevel: referByLevel,
           referredById: referredById,
           firstName: firstName,
           lastName: lastName,
@@ -124,6 +126,7 @@ class AuthController {
       required String email,
       required String uid,
       required String referredById,
+      required int referredByLevel,
       String? profileUrl}) async {
     try {
       await _influenceReference.doc(getUid()).set({
@@ -138,13 +141,36 @@ class AuthController {
         'created_by': uid,
         'referred_by_id': referredById,
         'uid': uid,
-        'referral_code':
-            '${firstName.trim().toLowerCase()}${lastName.trim().toLowerCase()}',
+        'referral_code': referredByLevel >= 2
+            ? null
+            : '${firstName.trim().toLowerCase()}${lastName.trim().toLowerCase()}',
+        'level': referredByLevel + 1
+      });
+      await _influenceReference
+          .doc(getUid())
+          .collection('sale')
+          .doc(formatDateKey(DateTime.now()))
+          .set({
+        'my_sale': 0,
+        'referral_sale': 0,
       });
       return true;
     } catch (e) {
       return false;
     }
+  }
+
+  String formatDateKey(DateTime dateTime) {
+    // Extract month, day, and year
+    String month =
+        dateTime.month.toString().padLeft(2, '0'); // Ensures two digits
+    String day = dateTime.day.toString().padLeft(2, '0'); // Ensures two digits
+    String year = dateTime.year.toString(); // Gets the full year
+
+    // Concatenate in MMDDYYYY format
+    String dateKey = '$month$day$year';
+
+    return dateKey;
   }
 
   Future<bool> isUserAlreadyExistsWithThisReferralNameCode(
