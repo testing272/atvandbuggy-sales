@@ -13,10 +13,14 @@ import '../../navigator/view/navigation_screen.dart';
 final _formKey = GlobalKey<FormState>();
 
 class CreateYourAccountScreen extends StatefulWidget {
-  final String referredById;
+  final String referredByCode;
   final int referredByLevel;
+  final String referredByUid;
   const CreateYourAccountScreen(
-      {super.key, required this.referredById, required this.referredByLevel});
+      {super.key,
+      required this.referredByCode,
+      required this.referredByLevel,
+      required this.referredByUid});
 
   @override
   State<CreateYourAccountScreen> createState() =>
@@ -159,8 +163,9 @@ class _CreateYourAccountScreenState extends State<CreateYourAccountScreen> {
                                 passwordController.text,
                                 firstNameController.text,
                                 lastNameController.text,
-                                widget.referredById,
+                                widget.referredByCode,
                                 widget.referredByLevel,
+                                widget.referredByUid,
                                 context);
                         if (response != null) {
                           Navigator.push(context,

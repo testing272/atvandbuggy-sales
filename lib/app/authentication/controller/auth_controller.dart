@@ -93,10 +93,13 @@ class AuthController {
       String lastName,
       String referredById,
       int referByLevel,
+      String referredByUid,
       BuildContext context) async {
     try {
-      final response = await isUserAlreadyExistsWithThisReferralNameCode(
-          '${firstName.trim().toLowerCase()}${lastName.trim().toLowerCase()}');
+      String referralCode =
+          '${firstName.trim().toLowerCase()}${lastName.trim().toLowerCase()}';
+      final response =
+          await isUserAlreadyExistsWithThisReferralNameCode(referralCode);
       if (response) {
         showCustomToast(context,
             'A user already exists with this name, please try a different name');
@@ -107,10 +110,12 @@ class AuthController {
       User? user = userCredential.user;
       createUser(
           referredByLevel: referByLevel,
-          referredById: referredById,
+          referredByCode: referredById,
           firstName: firstName,
           lastName: lastName,
           email: email,
+          referralCode: referralCode,
+          referredByUid: referredByUid,
           uid: user!.uid);
       return user;
     } catch (e) {
@@ -125,10 +130,13 @@ class AuthController {
       required String lastName,
       required String email,
       required String uid,
-      required String referredById,
+      required String referredByCode,
+      required String referredByUid,
       required int referredByLevel,
+      required String referralCode,
       String? profileUrl}) async {
     try {
+      ///Create account for new user
       await _influenceReference.doc(getUid()).set({
         'name': '$firstName $lastName',
         'email': email,
@@ -139,20 +147,25 @@ class AuthController {
         'referral_network': 0,
         'created_at': FieldValue.serverTimestamp(),
         'created_by': uid,
-        'referred_by_id': referredById,
+        'referred_by_uid': referredByUid,
+        'referred_by_code': referredByCode,
         'uid': uid,
-        'referral_code': referredByLevel >= 2
-            ? null
-            : '${firstName.trim().toLowerCase()}${lastName.trim().toLowerCase()}',
+        'referral_code': referredByLevel >= 2 ? null : referralCode,
         'level': referredByLevel + 1
       });
+
+      ///Add it's id to parent network
+      await _influenceReference.doc(referredByUid).update({
+        'referral_network': FieldValue.increment(1),
+      });
+
+      ///increment parent network
       await _influenceReference
-          .doc(getUid())
-          .collection('sale')
-          .doc(formatDateKey(DateTime.now()))
+          .doc(referredByUid)
+          .collection('network')
+          .doc(uid)
           .set({
-        'my_sale': 0,
-        'referral_sale': 0,
+        'user_uid': uid,
       });
       return true;
     } catch (e) {

@@ -40,7 +40,7 @@ class YourReferralsController extends ChangeNotifier {
           // Convert the Firestore document data to a ReferralModel using the factory constructor
           ReferralModel referral = ReferralModel.fromFirebase(
             referredUserData,
-            network: null,
+            referredUserDoc.id,
           );
 
           // Add the referral to the list
@@ -56,7 +56,7 @@ class YourReferralsController extends ChangeNotifier {
   }
 
   // Recursive function to fetch the referred user's network
-  Future<List<ReferralModel>> fetchReferralNetwork(String influencerUid) async {
+  Future<void> fetchReferralNetwork(String influencerUid, int index) async {
     List<ReferralModel> referralNetwork = [];
 
     try {
@@ -83,14 +83,10 @@ class YourReferralsController extends ChangeNotifier {
         if (referredUserDoc.exists) {
           var referredUserData = referredUserDoc.data() as Map<String, dynamic>;
 
-          // Recursive call to fetch the referred user's network
-          List<ReferralModel> referredUserNetwork =
-              await fetchReferralNetwork(referredUserUid);
-
           // Convert the Firestore document data to a ReferralModel using the factory constructor
           ReferralModel referral = ReferralModel.fromFirebase(
             referredUserData,
-            network: referredUserNetwork,
+            referredUserDoc.id,
           );
 
           // Add the referral to the referral network list
@@ -101,6 +97,7 @@ class YourReferralsController extends ChangeNotifier {
       print("Error fetching referral network: $e");
     }
 
-    return referralNetwork;
+    referrals![index].network = referralNetwork;
+    notifyListeners();
   }
 }
