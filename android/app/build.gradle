@@ -3,9 +3,8 @@ plugins {
     id "kotlin-android"
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id "dev.flutter.flutter-gradle-plugin"
+    id "com.google.gms.google-services" // Correct placement
 }
-
-
 
 def keystoreProperties = new Properties()
 def keystorePropertiesFile = rootProject.file('key.properties')
@@ -13,11 +12,10 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
 
-
 android {
     namespace = "com.example.atvandbuggy_sales_app"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    compileSdk = flutter.compileSdkVersion // Ensure this resolves correctly
+    ndkVersion = flutter.ndkVersion // Ensure this resolves correctly
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -25,18 +23,15 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8
+        jvmTarget = "1.8"
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.atvandbuggy_sales_app"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = 26
-        targetSdk = flutter.targetSdkVersion
+        targetSdk = flutter.targetSdkVersion // Ensure this resolves correctly
         versionCode = 4
-        versionName = '1.0.0'
+        versionName = "1.0.0"
     }
 
     signingConfigs {
@@ -47,9 +42,15 @@ android {
             storePassword keystoreProperties['storePassword']
         }
     }
+
     buildTypes {
         release {
             signingConfig signingConfigs.release
+            minifyEnabled false // Optional: Adjust based on your app's requirements
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            signingConfig signingConfigs.release // Optional: Add if debugging signed builds
         }
     }
 
@@ -66,10 +67,7 @@ flutter {
     source = "../.."
 }
 
-
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version" // Ensure $kotlin_version is defined
     implementation 'androidx.browser:browser:1.8.0'
-    apply plugin: 'com.google.gms.google-services'
-
 }
