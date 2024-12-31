@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -21,34 +22,42 @@ class Messages extends StatelessWidget {
               return InkWell(
                 onTap: () {
                   Navigator.push(context, MaterialPageRoute(builder: (context) {
-                    return const ChatScreen();
+                    return const ChatScreen(
+                      name: 'Abigail',
+                      profileUrl:
+                          'https://i.cbc.ca/1.6903099.1689089909!/fileImage/httpImage/image.jpg_gen/derivatives/original_780/julia-wright.jpg',
+                    );
                   }));
                 },
                 child: Container(
                   margin: const EdgeInsets.only(bottom: 25),
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const CircleAvatar(
                         radius: 30,
-                        backgroundImage: AssetImage('assets/icons/david.png'),
+                        backgroundImage: CachedNetworkImageProvider(
+                            'https://i.cbc.ca/1.6903099.1689089909!/fileImage/httpImage/image.jpg_gen/derivatives/original_780/julia-wright.jpg'),
                       ),
                       10.horizontalSpace,
-                      const Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Smeed Sathi',
-                            style: TextStyle(
-                                fontWeight: FontWeight.w700, fontSize: 18),
-                          ),
-                          Text(
-                            'Hi, how are you?',
-                            style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w400,
-                                color: Color(0xff797C7B)),
-                          ),
-                        ],
+                      Expanded(
+                        child: const Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Abigail',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w700, fontSize: 18),
+                            ),
+                            Text(
+                              'I am fine.',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w400,
+                                  color: Color(0xff797C7B)),
+                            ),
+                          ],
+                        ),
                       ),
                       const Spacer(),
                       const Text(

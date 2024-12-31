@@ -1,4 +1,6 @@
+import 'package:atvandbuggy_sales_app/app/home/controller/sale_controller.dart';
 import 'package:atvandbuggy_sales_app/app/referral/controller/refer_by_controller.dart';
+import 'package:atvandbuggy_sales_app/app/referral/controller/your_referrals_controller.dart';
 import 'package:atvandbuggy_sales_app/app/setting/controller/user_data_controller.dart';
 import 'package:atvandbuggy_sales_app/theme/app_theme.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -18,6 +20,8 @@ void main() async {
     ChangeNotifierProvider(create: (context) => LanguageChangeController()),
     ChangeNotifierProvider(create: (context) => UserDataController()),
     ChangeNotifierProvider(create: (context) => ReferByController()),
+    ChangeNotifierProvider(create: (context) => SaleController()),
+    ChangeNotifierProvider(create: (context) => YourReferralsController()),
   ], child: const MyApp()));
 }
 

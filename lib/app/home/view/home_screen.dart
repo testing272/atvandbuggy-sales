@@ -1,8 +1,18 @@
+import 'dart:io';
+
 import 'package:atvandbuggy_sales_app/app/component/profile_header.dart';
+import 'package:atvandbuggy_sales_app/app/home/view/card_back.dart';
+import 'package:atvandbuggy_sales_app/app/home/view/card_front.dart';
+import 'package:atvandbuggy_sales_app/app/home/view/sale_section.dart';
+import 'package:atvandbuggy_sales_app/app/setting/controller/user_data_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
 import 'package:provider/provider.dart';
-import 'package:qr_flutter/qr_flutter.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../constant/app_strings.dart';
 import '../../../theme/app_theme.dart';
@@ -16,6 +26,10 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int selectedIndex = 0;
+  List<Widget> card = [
+    cardFront(),
+    cardBack(),
+  ];
   @override
   Widget build(BuildContext context) {
     return Consumer<AppTheme>(builder: (context, theme, child) {
@@ -23,302 +37,226 @@ class _HomeScreenState extends State<HomeScreen> {
         body: SafeArea(
           child: SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   ProfileHeader(),
                   20.verticalSpace,
-                  Text(
-                    'Feb 2024 -  May 2024',
-                    style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 12.sp,
-                        decoration: TextDecoration.underline,
-                        color: Color(0xff622E9D)),
-                  ),
-                  5.verticalSpace,
-                  Container(
-                    width: double.infinity,
-                    height: 240.h,
-                    decoration: BoxDecoration(
-                      color: theme.primaryColor,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    padding: EdgeInsets.all(10),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            children: [
-                              Expanded(
-                                child: Container(
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
-                                      color: theme.yellowLight,
-                                      borderRadius: BorderRadius.circular(6),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.3),
-                                          offset: Offset(2, 4),
-                                          blurRadius: 5,
-                                          spreadRadius: 0.5,
-                                        )
-                                      ]),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Image.asset(
-                                        'assets/icons/balance.png',
-                                        height: 15,
-                                      ),
-                                      6.verticalSpace,
-                                      Text(
-                                        'Withdrawable Balance',
-                                        style: TextStyle(
-                                            color:
-                                                Colors.black.withOpacity(0.6),
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w500),
-                                      ),
-                                      Text(
-                                        '8,590.00',
-                                        style: TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.w900),
-                                      ),
-                                      Text(
-                                        'AED',
-                                        style: TextStyle(
-                                            fontSize: 10,
-                                            color:
-                                                Colors.black.withOpacity(0.6),
-                                            fontWeight: FontWeight.w500),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              10.verticalSpace,
-                              Expanded(
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                      color: theme.yellowLight,
-                                      borderRadius: BorderRadius.circular(6),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.3),
-                                          offset: Offset(2, 4),
-                                          blurRadius: 5,
-                                          spreadRadius: 0.5,
-                                        )
-                                      ]),
-                                  width: double.infinity,
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Image.asset(
-                                        'assets/icons/rafferal_network.png',
-                                        height: 15,
-                                      ),
-                                      6.verticalSpace,
-                                      Text(
-                                        'My Referral Network',
-                                        style: TextStyle(
-                                            color:
-                                                Colors.black.withOpacity(0.6),
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w500),
-                                      ),
-                                      Text(
-                                        '25',
-                                        style: TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.w900),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        10.horizontalSpace,
-                        Expanded(
-                          child: Container(
-                            padding: EdgeInsets.all(7),
-                            decoration: BoxDecoration(
-                                color: theme.yellowLight,
-                                borderRadius: BorderRadius.circular(6),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.3),
-                                    offset: Offset(2, 4),
-                                    blurRadius: 5,
-                                    spreadRadius: 0.5,
-                                  )
-                                ]),
-                            child: Column(
-                              children: [
-                                Expanded(
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            color: theme.primaryColor,
-                                            borderRadius:
-                                                BorderRadius.circular(6),
-                                          ),
-                                          child: Column(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Image.asset(
-                                                'assets/icons/sales.png',
-                                                height: 15,
-                                              ),
-                                              6.verticalSpace,
-                                              Text(
-                                                'My Sales',
-                                                style: TextStyle(
-                                                    color: Colors.black
-                                                        .withOpacity(0.6),
-                                                    fontSize: 10,
-                                                    fontWeight:
-                                                        FontWeight.w500),
-                                              ),
-                                              Text(
-                                                '520',
-                                                style: TextStyle(
-                                                    fontSize: 20,
-                                                    fontWeight:
-                                                        FontWeight.w900),
-                                              ),
-                                              Text(
-                                                'AED',
-                                                style: TextStyle(
-                                                    color: Colors.black
-                                                        .withOpacity(0.6),
-                                                    fontSize: 10,
-                                                    fontWeight:
-                                                        FontWeight.w500),
-                                              )
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                      5.horizontalSpace,
-                                      Expanded(
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            color: theme.primaryColor,
-                                            borderRadius:
-                                                BorderRadius.circular(6),
-                                          ),
-                                          child: Column(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Image.asset(
-                                                'assets/icons/referral_sales.png',
-                                                height: 15,
-                                              ),
-                                              6.verticalSpace,
-                                              Text(
-                                                'Referral Sales',
-                                                style: TextStyle(
-                                                    color: Colors.black
-                                                        .withOpacity(0.6),
-                                                    fontSize: 10,
-                                                    fontWeight:
-                                                        FontWeight.w500),
-                                              ),
-                                              Text(
-                                                '15000',
-                                                style: TextStyle(
-                                                    fontSize: 20,
-                                                    fontWeight:
-                                                        FontWeight.w900),
-                                              ),
-                                              Text(
-                                                'AED',
-                                                style: TextStyle(
-                                                    fontSize: 10,
-                                                    color: Colors.black
-                                                        .withOpacity(0.6),
-                                                    fontWeight:
-                                                        FontWeight.w500),
-                                              )
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                5.verticalSpace,
-                                Expanded(
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: theme.primaryColor,
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    width: double.infinity,
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Image.asset(
-                                          'assets/icons/sales.png',
-                                          height: 15,
-                                        ),
-                                        6.verticalSpace,
-                                        Text(
-                                          'Total Sales',
-                                          style: TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.w500),
-                                        ),
-                                        Text(
-                                          '15,520.00',
-                                          style: TextStyle(
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.w900),
-                                        ),
-                                        Text(
-                                          'AED',
-                                          style: TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.w500),
-                                        )
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  SaleSection(),
                   30.verticalSpace,
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 5),
-                    child: Row(
-                      children: [
-                        Text(
-                          'Share your Card',
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.w800),
+                  InkWell(
+                    onTap: () async {
+                      UserDataController user = Provider.of<UserDataController>(
+                          context,
+                          listen: false);
+                      final pdf = pw.Document();
+                      final image = await rootBundle
+                          .load('assets/icons/influencer_card.png');
+                      final back_image =
+                          await rootBundle.load('assets/icons/card_back.png');
+                      final phone =
+                          await rootBundle.load('assets/icons/phone_icon.png');
+                      final email =
+                          await rootBundle.load('assets/icons/email_icon.png');
+                      final web =
+                          await rootBundle.load('assets/icons/web_icon.png');
+                      // Add both sides of the card in a column layout
+                      pdf.addPage(
+                        pw.Page(
+                          build: (pw.Context context) {
+                            return pw.Column(
+                              children: [
+                                pw.Container(
+                                    height: 150,
+                                    width: 280,
+                                    decoration: pw.BoxDecoration(
+                                      borderRadius:
+                                          pw.BorderRadius.circular(10),
+                                      image: pw.DecorationImage(
+                                        image: pw.MemoryImage(
+                                          image.buffer.asUint8List(),
+                                        ),
+                                        fit: pw.BoxFit.cover,
+                                      ),
+                                    ),
+                                    child: pw.Column(
+                                        mainAxisAlignment:
+                                            pw.MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            pw.CrossAxisAlignment.center,
+                                        children: [
+                                          pw.SizedBox(height: 35),
+                                          pw.BarcodeWidget(
+                                            padding: pw.EdgeInsets.all(3),
+                                            backgroundColor: PdfColors.white,
+                                            width: 70,
+                                            height: 70,
+                                            barcode: pw.Barcode.qrCode(),
+                                            data:
+                                                'https://dev-v2.atvandbuggy.com/?q=${user.userDataModel.referredCode}',
+                                          ),
+                                          pw.Spacer(),
+                                          pw.Text('www.atvandbuggy.com',
+                                              style: pw.TextStyle(
+                                                  color: PdfColors.white,
+                                                  fontSize: 7,
+                                                  fontWeight:
+                                                      pw.FontWeight.bold)),
+                                          pw.SizedBox(height: 10)
+                                        ])),
+                                pw.SizedBox(height: 20),
+                                pw.Container(
+                                  height: 150,
+                                  width: 280,
+                                  decoration: pw.BoxDecoration(
+                                    // border: pw.Border.all(color: PdfColors.grey, width: 0.5),
+                                    image: pw.DecorationImage(
+                                      image: pw.MemoryImage(
+                                        back_image.buffer.asUint8List(),
+                                      ),
+                                      fit: pw.BoxFit.cover,
+                                    ),
+                                    borderRadius: pw.BorderRadius.circular(10),
+                                  ),
+                                  child: pw.Padding(
+                                      padding: const pw.EdgeInsets.all(15),
+                                      child: pw.Row(children: [
+                                        pw.Padding(
+                                          padding:
+                                              const pw.EdgeInsets.symmetric(
+                                                  horizontal: 5),
+                                          child: pw.Column(
+                                            crossAxisAlignment:
+                                                pw.CrossAxisAlignment.center,
+                                            mainAxisAlignment:
+                                                pw.MainAxisAlignment.center,
+                                            children: [
+                                              pw.Text(
+                                                  '${user.userDataModel.name}',
+                                                  style: pw.TextStyle(
+                                                      color: PdfColor.fromInt(
+                                                          0xFF212332),
+                                                      fontSize: 11,
+                                                      fontWeight:
+                                                          pw.FontWeight.bold)),
+                                              pw.Text('profession',
+                                                  style: pw.TextStyle(
+                                                      fontSize: 6,
+                                                      color: PdfColor.fromInt(
+                                                          0xFF212332))),
+                                            ],
+                                          ),
+                                        ),
+                                        pw.Spacer(),
+                                        pw.Padding(
+                                          padding: pw.EdgeInsets.symmetric(
+                                              vertical: 20),
+                                          child: pw.VerticalDivider(
+                                              color:
+                                                  PdfColor.fromInt(0xFF212332)),
+                                        ),
+                                        pw.Spacer(),
+                                        pw.Column(
+                                          crossAxisAlignment:
+                                              pw.CrossAxisAlignment.center,
+                                          mainAxisAlignment:
+                                              pw.MainAxisAlignment.center,
+                                          children: [
+                                            pw.SizedBox(
+                                              width: 145,
+                                              child: pw.Row(
+                                                children: [
+                                                  pw.Image(
+                                                      pw.MemoryImage(
+                                                        phone.buffer
+                                                            .asUint8List(),
+                                                      ),
+                                                      width: 15,
+                                                      height: 15),
+                                                  pw.SizedBox(width: 3),
+                                                  pw.Text('+923423234324',
+                                                      style: pw.TextStyle(
+                                                          fontSize: 6)),
+                                                ],
+                                              ),
+                                            ),
+                                            pw.SizedBox(height: 5),
+                                            pw.SizedBox(
+                                              width: 145,
+                                              child: pw.Row(
+                                                children: [
+                                                  pw.Image(
+                                                      pw.MemoryImage(
+                                                        email.buffer
+                                                            .asUint8List(),
+                                                      ),
+                                                      width: 15,
+                                                      height: 15),
+                                                  pw.SizedBox(width: 3),
+                                                  pw.Text(
+                                                      '${user.userDataModel..email}',
+                                                      style: pw.TextStyle(
+                                                          fontSize: 6)),
+                                                ],
+                                              ),
+                                            ),
+                                            pw.SizedBox(height: 5),
+                                            pw.SizedBox(
+                                              width: 145,
+                                              child: pw.Row(
+                                                children: [
+                                                  pw.Image(
+                                                      pw.MemoryImage(
+                                                        web.buffer
+                                                            .asUint8List(),
+                                                      ),
+                                                      width: 15,
+                                                      height: 15),
+                                                  pw.SizedBox(width: 3),
+                                                  pw.Text('www.atvandbuggy.com',
+                                                      style: pw.TextStyle(
+                                                          fontSize: 6)),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ])),
+                                )
+                              ],
+                            );
+                          },
                         ),
-                        Spacer(),
-                        Image.asset(
-                          'assets/icons/share.png',
-                          height: 26,
-                        ),
-                      ],
+                      );
+
+                      // Save the PDF to a temporary file
+                      Uint8List bytes = await pdf.save();
+                      final directory = await getTemporaryDirectory();
+                      final path = '${directory.path}/influencer_card.pdf';
+                      final file = File(path);
+                      await file.writeAsBytes(bytes);
+
+                      // Share the PDF file
+                      await Share.shareXFiles([XFile(path)],
+                          text: 'Look what I made!');
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 5),
+                      child: Row(
+                        children: [
+                          Text(
+                            'Share your Card',
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.w800),
+                          ),
+                          Spacer(),
+                          Image.asset(
+                            'assets/icons/share.png',
+                            height: 26,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   15.verticalSpace,
@@ -326,45 +264,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     height: 200.h,
                     width: double.infinity,
                     child: PageView.builder(
-                        onPageChanged: (index) {
-                          setState(() {
-                            selectedIndex = index;
-                          });
-                        },
-                        itemCount: cardBg.length,
-                        itemBuilder: (context, index) {
-                          return Stack(
-                            children: [
-                              Image.asset(
-                                cardBg[index],
-                              ),
-                              index == 0
-                                  ? Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Container(width: double.infinity),
-                                        QrImageView(
-                                          data:
-                                              'csdsjkdjkkjsdsjkd23r3r89dsdkjdsjkjkdbdb3348834jnbcdsnjsdcjn34skjfksdkfjsif3489rewjkf',
-                                          version: QrVersions.auto,
-                                          size: 90.0,
-                                          foregroundColor: Colors.white,
-                                        ),
-                                        10.verticalSpace,
-                                        Text(
-                                          'www.atvandbuggy.com',
-                                          style: TextStyle(
-                                              fontSize: 10,
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.w500),
-                                        )
-                                      ],
-                                    )
-                                  : SizedBox(),
-                            ],
-                          );
-                        }),
+                      onPageChanged: (index) {
+                        setState(() {
+                          selectedIndex = index;
+                        });
+                      },
+                      itemCount: card.length,
+                      itemBuilder: (context, index) {
+                        return card[index];
+                      },
+                    ),
                   ),
                   15.verticalSpace,
                   Row(

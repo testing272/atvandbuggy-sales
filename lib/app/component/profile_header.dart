@@ -13,34 +13,31 @@ class ProfileHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<UserDataController>(builder: (context, profile, child) {
       try {
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 30),
-          child: Row(
-            children: [
-              CircleAvatar(
-                radius: 30,
-                backgroundImage: CachedNetworkImageProvider(
-                    '${profile.userDataModel.profileUrl}'),
-              ),
-              10.horizontalSpace,
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${profile.userDataModel.name}',
-                    style: TextStyle(fontWeight: FontWeight.w800),
-                  ),
-                  Text(
-                    '${profile.userDataModel.email}',
-                    style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400),
-                  ),
-                ],
-              )
-            ],
-          ),
+        return Row(
+          children: [
+            CircleAvatar(
+              radius: 30,
+              backgroundImage: CachedNetworkImageProvider(
+                  '${profile.userDataModel.profileUrl}'),
+            ),
+            10.horizontalSpace,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${profile.userDataModel.name}',
+                  style: TextStyle(fontWeight: FontWeight.w800),
+                ),
+                Text(
+                  '${profile.userDataModel.email}',
+                  style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400),
+                ),
+              ],
+            )
+          ],
         );
       } catch (e) {
         return Padding(

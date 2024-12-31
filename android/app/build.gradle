@@ -1,7 +1,8 @@
 plugins {
     id "com.android.application"
     id "kotlin-android"
-    id "dev.flutter.flutter-gradle-plugin" // Must be applied after Android and Kotlin plugins
+    // The Flutter Gradle Plugin must be applied after the Android and Kotlin plugins.
+    id "dev.flutter.flutter-gradle-plugin"
     id "com.google.gms.google-services" // Added at the top level
 }
 
@@ -13,8 +14,8 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "com.example.atvandbuggy_sales_app"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion // Ensure this resolves correctly, or set explicitly
+    compileSdk = flutter.compileSdkVersion // Ensure this resolves correctly
+    ndkVersion = flutter.ndkVersion // Ensure this resolves correctly
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -22,15 +23,15 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8.toString()
+        jvmTarget = "1.8"
     }
 
     defaultConfig {
         applicationId = "com.example.atvandbuggy_sales_app"
         minSdk = 26
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
+        targetSdk = flutter.targetSdkVersion // Ensure this resolves correctly
+        versionCode = 4
+        versionName = "1.0.0"
     }
 
     signingConfigs {
@@ -45,11 +46,11 @@ android {
     buildTypes {
         release {
             signingConfig signingConfigs.release
-            minifyEnabled false
+            minifyEnabled false // Optional: Adjust based on your app's requirements
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         debug {
-            signingConfig signingConfigs.release // Optional, only if required for debug
+            signingConfig signingConfigs.release // Optional: Add if debugging signed builds
         }
     }
 
@@ -67,7 +68,6 @@ flutter {
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version" // Ensure $kotlin_version is defined
     implementation 'androidx.browser:browser:1.8.0'
 }
-

@@ -2,7 +2,6 @@ import 'package:atvandbuggy_sales_app/app/authentication/controller/auth_control
 import 'package:atvandbuggy_sales_app/app/authentication/view/login_screen.dart';
 import 'package:atvandbuggy_sales_app/app/referral/controller/refer_by_controller.dart';
 import 'package:atvandbuggy_sales_app/app/setting/controller/user_data_controller.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -11,6 +10,7 @@ import 'package:provider/provider.dart';
 import '../../../theme/app_theme.dart';
 import '../../chat/view/messages.dart';
 import '../../component/profile_button.dart';
+import '../../component/profile_header.dart';
 import '../../referral/view/referred_by_screen.dart';
 import 'edit_profile_screen.dart';
 
@@ -42,26 +42,7 @@ class SettingScreen extends StatelessWidget {
                     padding: EdgeInsets.symmetric(vertical: 20, horizontal: 15),
                     child: Row(
                       children: [
-                        CircleAvatar(
-                          radius: 20,
-                          backgroundImage: CachedNetworkImageProvider(
-                              '${profile.userDataModel.profileUrl}'),
-                        ),
-                        10.horizontalSpace,
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '${profile.userDataModel.name}',
-                              style: TextStyle(fontWeight: FontWeight.w800),
-                            ),
-                            Text(
-                              '${profile.userDataModel.email}',
-                              style: TextStyle(
-                                  fontSize: 12, fontWeight: FontWeight.w500),
-                            ),
-                          ],
-                        ),
+                        ProfileHeader(),
                         Spacer(),
                         InkWell(
                           onTap: () {
@@ -88,18 +69,25 @@ class SettingScreen extends StatelessWidget {
                   );
                 }),
                 20.verticalSpace,
-                ProfileButton(
-                  onTap: () async {
-                    await Provider.of<ReferByController>(context, listen: false)
-                        .getReferByUserFromFirebase(context);
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) {
-                      return ReferredByScreen();
-                    }));
-                  },
-                  title: 'Referred by',
-                  prefixIconPath: 'assets/icons/referred_user.png',
-                ),
+                Consumer<UserDataController>(
+                    builder: (context, profile, child) {
+                  if (profile.userDataModel.level != 1) {
+                    return ProfileButton(
+                      onTap: () async {
+                        await Provider.of<ReferByController>(context,
+                                listen: false)
+                            .getReferByUserFromFirebase(context);
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (context) {
+                          return ReferredByScreen();
+                        }));
+                      },
+                      title: 'Referred by',
+                      prefixIconPath: 'assets/icons/referred_user.png',
+                    );
+                  }
+                  return SizedBox.shrink();
+                }),
                 20.verticalSpace,
                 ProfileButton(
                   title: 'Messages',

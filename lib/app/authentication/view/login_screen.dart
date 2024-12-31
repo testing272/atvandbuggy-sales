@@ -70,6 +70,19 @@ class _LoginScreenState extends State<LoginScreen> {
                           obscureText = !obscureText;
                         });
                       },
+                      validation: (value) {
+                        if (value.length < 8) {
+                          return 'Password must be at least 8 characters';
+                        }
+                        if (!RegExp(r'[A-Z]').hasMatch(value)) {
+                          return 'password must contain uppercase';
+                        }
+                        if (!RegExp(r'[!@#$%^&*(),.?":{}|<>]')
+                            .hasMatch(value)) {
+                          return 'password must contain special character';
+                        }
+                        return null;
+                      },
                     ),
                     25.verticalSpace,
                     InkWell(
@@ -98,6 +111,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     passwordController.text,
                                     context);
                             if (response != null) {
+                              Navigator.pop(context);
                               Navigator.pushReplacement(context,
                                   MaterialPageRoute(builder: (context) {
                                 return NavigationScreen();

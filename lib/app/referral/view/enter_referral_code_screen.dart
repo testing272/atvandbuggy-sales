@@ -52,13 +52,15 @@ class _EnterReferralCodeScreenState extends State<EnterReferralCodeScreen> {
                   onTap: () async {
                     if (_formKey.currentState!.validate()) {
                       showLoader(context);
-                      final bool response = await ReferByController()
+                      final Map? data = await ReferByController()
                           .idValidReferralCode(referralCodeController.text);
-                      if (response) {
+                      if (data != null) {
                         Navigator.pushReplacement(context,
                             MaterialPageRoute(builder: (context) {
                           return CreateYourAccountScreen(
-                            referredById: referralCodeController.text,
+                            referredByCode: referralCodeController.text,
+                            referredByLevel: data['level'],
+                            referredByUid: data['uid'],
                           );
                         }));
                       } else {

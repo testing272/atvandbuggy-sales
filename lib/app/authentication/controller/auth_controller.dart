@@ -92,10 +92,14 @@ class AuthController {
       String firstName,
       String lastName,
       String referredById,
+      int referByLevel,
+      String referredByUid,
       BuildContext context) async {
     try {
-      final response = await isUserAlreadyExistsWithThisReferralNameCode(
-          '${firstName.trim().toLowerCase()}${lastName.trim().toLowerCase()}');
+      String referralCode =
+          '${firstName.trim().toLowerCase()}${lastName.trim().toLowerCase()}';
+      final response =
+          await isUserAlreadyExistsWithThisReferralNameCode(referralCode);
       if (response) {
         showCustomToast(context,
             'A user already exists with this name, please try a different name');
@@ -105,10 +109,13 @@ class AuthController {
           .createUserWithEmailAndPassword(email: email, password: password);
       User? user = userCredential.user;
       createUser(
-          referredById: referredById,
+          referredByLevel: referByLevel,
+          referredByCode: referredById,
           firstName: firstName,
           lastName: lastName,
           email: email,
+          referralCode: referralCode,
+          referredByUid: referredByUid,
           uid: user!.uid);
       return user;
     } catch (e) {
@@ -123,9 +130,13 @@ class AuthController {
       required String lastName,
       required String email,
       required String uid,
-      required String referredById,
+      required String referredByCode,
+      required String referredByUid,
+      required int referredByLevel,
+      required String referralCode,
       String? profileUrl}) async {
     try {
+      ///Create account for new user
       await _influenceReference.doc(getUid()).set({
         'name': '$firstName $lastName',
         'email': email,
@@ -136,15 +147,43 @@ class AuthController {
         'referral_network': 0,
         'created_at': FieldValue.serverTimestamp(),
         'created_by': uid,
-        'referred_by_id': referredById,
+        'referred_by_uid': referredByUid,
+        'referred_by_code': referredByCode,
         'uid': uid,
-        'referral_code':
-            '${firstName.trim().toLowerCase()}${lastName.trim().toLowerCase()}',
+        'referral_code': referredByLevel >= 2 ? null : referralCode,
+        'level': referredByLevel + 1
+      });
+
+      ///Add it's id to parent network
+      await _influenceReference.doc(referredByUid).update({
+        'referral_network': FieldValue.increment(1),
+      });
+
+      ///increment parent network
+      await _influenceReference
+          .doc(referredByUid)
+          .collection('network')
+          .doc(uid)
+          .set({
+        'user_uid': uid,
       });
       return true;
     } catch (e) {
       return false;
     }
+  }
+
+  String formatDateKey(DateTime dateTime) {
+    // Extract month, day, and year
+    String month =
+        dateTime.month.toString().padLeft(2, '0'); // Ensures two digits
+    String day = dateTime.day.toString().padLeft(2, '0'); // Ensures two digits
+    String year = dateTime.year.toString(); // Gets the full year
+
+    // Concatenate in MMDDYYYY format
+    String dateKey = '$month$day$year';
+
+    return dateKey;
   }
 
   Future<bool> isUserAlreadyExistsWithThisReferralNameCode(
