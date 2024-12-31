@@ -1,13 +1,15 @@
-name: Deploy to Firebase and Google Cloud Platform
+name: Deploy to Firebase and Google Cloud Platform (Dev Environment)
 
 on:
   push:
     branches:
-      - automation
+      - dev
+
 jobs:
   build:
-    name: Building and distributing app
+    name: Building and Distributing App (Dev)
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v3
@@ -30,10 +32,8 @@ jobs:
       - name: Clean Flutter project
         run: flutter clean
 
-
       - name: Build Flutter for Android
-        run:  flutter build appbundle --flavor development
-
+        run: flutter build appbundle --flavor dev
 
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
@@ -43,17 +43,18 @@ jobs:
           echo "${{ secrets.SERVICE_ACCOUNT_KEY_DEV }}" > $HOME/gcp-key.json
           export GOOGLE_APPLICATION_CREDENTIALS=$HOME/gcp-key.json
           export FIREBASE_PROJECT=${{ secrets.FIREBASE_PROJECT_ID_DEV }}
+
       - name: Update Firebase CLI
         run: npm install -g firebase-tools@latest
 
       - name: Upload Artifact to Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
-          serviceCredentialsFileContent: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
-          token: ${{ secrets.FIREBASE_TOKEN }}
-          appId: ${{ secrets.FIREBASE_APP_ID_SALES_DEV }}
+          serviceCredentialsFileContent: ${{ secrets.SERVICE_ACCOUNT_KEY_DEV }}
+          token: ${{ secrets.FIREBASE_TOKEN_DEV }}
+          appId: ${{ secrets.FIREBASE_APP_ID_DEV }}
           groups: testers
-          file: build/app/outputs/bundle/developmentRelease/app-development-release.aab
+          file: build/app/outputs/bundle/devRelease/app-dev-release.aab
 
       - name: Notify on success
         if: success()
@@ -62,9 +63,9 @@ jobs:
           status: success
           fields: repo,commit
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
-          SLACK_USERNAME: 'Build Info'
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_DEV }}
+          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_DEV }}
+          SLACK_USERNAME: 'Build Info (Dev)'
 
       - name: Notify on failure
         if: failure()
@@ -73,6 +74,6 @@ jobs:
           status: failure
           fields: repo,commit
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
-          SLACK_USERNAME: 'GitHub Actions'
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_DEV }}
+          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_DEV }}
+          SLACK_USERNAME: 'GitHub Actions (Dev)'
