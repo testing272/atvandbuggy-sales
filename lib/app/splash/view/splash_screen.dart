@@ -6,17 +6,20 @@ import '../../../constant/asset_paths.dart';
 import '../controller/splash_screen_controller.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  const SplashScreen({Key? key}) : super(key: key);
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  late final SplashScreenController _controller;
+
   @override
   void initState() {
     super.initState();
-    SplashScreenController().navigate(context);
+    _controller = SplashScreenController();
+    _controller.navigate(context);
   }
 
   @override
@@ -27,11 +30,21 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(appLogoPath),
-            15.verticalSpace,
+            // App Logo
+            Image.asset(
+              appLogoPath,
+              height: 100.h, // Responsive height using ScreenUtil
+              fit: BoxFit.contain,
+            ),
+            SizedBox(height: 15.h), // Responsive vertical space
+            // App Name Text
             Text(
               salesApp,
-              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 27.sp),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 27.sp, // Responsive font size
+              ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
