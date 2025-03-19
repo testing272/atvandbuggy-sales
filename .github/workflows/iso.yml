@@ -1,0 +1,62 @@
+name: Build and Deploy iOS App to App Store
+
+on:
+  push:
+    branches:
+      - main  # Ensure this is the correct deployment branch
+
+jobs:
+  build:
+    name: Build and Deploy iOS
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set Up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'  # Update with your Flutter version
+          channel: stable
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Install CocoaPods Dependencies
+        run: |
+          cd ios
+          pod install
+
+      - name: Build iOS App
+        env:
+          DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
+        run: |
+          xcodebuild -workspace ios/Runner.xcworkspace \
+            -scheme Runner \
+            -sdk iphoneos \
+            -configuration Release \
+            -archivePath $GITHUB_WORKSPACE/build/Runner.xcarchive \
+            archive
+
+      - name: Export IPA
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath $GITHUB_WORKSPACE/build/Runner.xcarchive \
+            -exportOptionsPlist ios/ExportOptions.plist \
+            -exportPath $GITHUB_WORKSPACE/build
+
+      - name: Upload to App Store (TestFlight)
+        env:
+          API_KEY_ID: ${{ secrets.API_KEY_ID }}
+          API_ISSUER_ID: ${{ secrets.API_ISSUER_ID }}
+          API_KEY_BASE64: ${{ secrets.API_KEY_BASE64 }}
+          APPLE_APP_ID: "6741908137" # Your app's Apple ID
+        run: |
+          echo "${API_KEY_BASE64}" | base64 --decode > api_key.p8
+          xcrun altool --upload-app \
+            -f $GITHUB_WORKSPACE/build/Runner.ipa \
+            -t ios \
+            --apiKey ${API_KEY_ID} \
+            --apiIssuer ${API_ISSUER_ID} \
+            --appId ${APPLE_APP_ID}
