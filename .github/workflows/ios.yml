@@ -1,0 +1,144 @@
+name: Build and Deploy iOS App to App Store
+on:
+  push:
+    branches:
+      - new
+jobs:
+  build:
+    name: Build and Deploy iOS
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set Up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.13.0'
+          channel: stable
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Ensure Flutter is Set Up Properly
+        run: |
+          flutter clean
+          flutter pub get
+          flutter precache
+          flutter doctor -v
+
+      - name: Ensure iOS Directory Exists
+        run: |
+          if [ ! -d "ios" ]; then
+            echo "Error: 'ios' directory missing."
+            exit 1
+          fi
+
+      - name: Install CocoaPods
+        run: |
+          sudo gem install cocoapods --user-install
+          export PATH="$HOME/.gem/ruby/3.0.0/bin:$PATH"
+          pod --version
+
+      - name: Fix CocoaPods & Install Dependencies
+        run: |
+          cd ios
+          rm -f Podfile.lock
+          rm -rf Pods
+          rm -rf .symlinks
+          rm -rf Flutter/Flutter.framework
+          rm -rf Flutter/Flutter.podspec
+          flutter pub get
+          flutter build ios --no-codesign || {
+            echo "Flutter build failed, recreating iOS project..."
+            flutter create --platforms=ios .
+            flutter pub get
+            pod install --repo-update
+          }
+
+      - name: Update Deployment Target
+        run: |
+          cd ios
+          sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = 11.0/IPHONEOS_DEPLOYMENT_TARGET = 12.0/g' Runner.xcodeproj/project.pbxproj || echo "Deployment target already updated"
+          grep "IPHONEOS_DEPLOYMENT_TARGET" Runner.xcodeproj/project.pbxproj
+
+      - name: Set Bundle ID
+        run: |
+          cd ios
+          sed -i '' 's/<string>com\.atvandbuggy\.dev<\/string>/<string>com.atvandbuggy.sales.dev<\/string>/g' Runner/Info.plist || {
+            echo "Bundle ID not found or different, setting manually..."
+            plutil -replace CFBundleIdentifier -string "com.atvandbuggy.sales.dev" Runner/Info.plist
+          }
+          plutil -p Runner/Info.plist | grep CFBundleIdentifier
+
+      - name: Import Signing Certificates
+        env:
+          CERTIFICATE_P12: ${{ secrets.CERTIFICATE_P12 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.CERTIFICATE_PASSWORD }}
+          PROVISIONING_PROFILE: ${{ secrets.PROVISIONING_PROFILE }}
+        run: |
+          security unlock-keychain -p "" login.keychain || echo "Keychain unlock failed, proceeding"
+          if [ -z "$CERTIFICATE_P12" ]; then
+            echo "Error: CERTIFICATE_P12 is empty."
+            exit 1
+          fi
+          echo "$CERTIFICATE_P12" | base64 --decode > certificate.p12 || {
+            echo "Failed to decode CERTIFICATE_P12."
+            exit 1
+          }
+          security import certificate.p12 -k login.keychain -P "$CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          echo "Certificate imported. Checking identities..."
+          security find-identity -v -p codesign login.keychain > identities.txt
+          cat identities.txt
+          CERT_IDENTITY=$(grep "iPhone Distribution" identities.txt | grep "T72CZ82T9L" | awk '{print $2}' || echo "")
+          if [ -z "$CERT_IDENTITY" ]; then
+            echo "Error: No 'iPhone Distribution' certificate for T72CZ82T9L found."
+            exit 1
+          fi
+          echo "Found iPhone Distribution certificate: $CERT_IDENTITY"
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo "$PROVISIONING_PROFILE" | base64 --decode > profile.mobileprovision
+          PROFILE_UUID=$(security cms -D -i profile.mobileprovision | plutil -extract UUID raw -)
+          echo "Provisioning Profile UUID: $PROFILE_UUID"
+          cp profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/"$PROFILE_UUID.mobileprovision"
+          ls -l ~/Library/MobileDevice/Provisioning\ Profiles/
+
+      - name: Build iOS App
+        env:
+          DEVELOPER_DIR: /Applications/Xcode_15.4.app/Contents/Developer
+        run: |
+          PROFILE_UUID=$(security cms -D -i ~/Library/MobileDevice/Provisioning\ Profiles/*.mobileprovision | plutil -extract UUID raw -)
+          echo "Using Provisioning Profile UUID: $PROFILE_UUID"
+          xcodebuild -workspace ios/Runner.xcworkspace \
+            -scheme Runner \
+            -sdk iphoneos \
+            -configuration Release \
+            -archivePath $GITHUB_WORKSPACE/build/Runner.xcarchive \
+            archive \
+            CODE_SIGN_STYLE="Manual" \
+            CODE_SIGN_IDENTITY="iPhone Distribution" \
+            PROVISIONING_PROFILE_SPECIFIER="match AppStore com.atvandbuggy.sales.dev" \
+            DEVELOPMENT_TEAM="${{ secrets.DEVELOPMENT_TEAM }}" \
+            -target Runner
+
+      - name: Export IPA
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath $GITHUB_WORKSPACE/build/Runner.xcarchive \
+            -exportOptionsPlist ios/ExportOptions.plist \
+            -exportPath $GITHUB_WORKSPACE/build
+
+      - name: Upload to App Store (TestFlight)
+        env:
+          API_KEY_ID: ${{ secrets.API_KEY_ID }}
+          API_ISSUER_ID: ${{ secrets.API_ISSUER_ID }}
+          API_KEY_BASE64: ${{ secrets.API_KEY_BASE64 }}
+          APPLE_APP_ID: "6736747628"  # Updated Apple ID
+        run: |
+          echo "${API_KEY_BASE64}" | base64 --decode > api_key.p8
+          xcrun altool --upload-app \
+            -f $GITHUB_WORKSPACE/build/Runner.ipa \
+            -t ios \
+            --apiKey ${API_KEY_ID} \
+            --apiIssuer ${API_ISSUER_ID} \
+            --appId ${APPLE_APP_ID}
