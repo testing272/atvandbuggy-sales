@@ -32,16 +32,13 @@ jobs:
             flutter create --platforms=ios --org com.atvandbuggy --project-name atvandbuggy_sales_app .
             flutter pub get
           fi
-          # Move to ios directory
+          # Move to ios directory and ensure Podfile has platform :ios, '13.0'
           cd ios
-          # Check and update or create Podfile
           if [ -f "Podfile" ]; then
-            echo "Updating Podfile with platform :ios, '13.0'"
-            if ! grep -q "platform :ios" Podfile; then
-              echo "platform :ios, '13.0'" >> Podfile
-            else
-              sed -i '' "s/platform :ios.*/platform :ios, '13.0'/" Podfile
-            fi
+            echo "Ensuring Podfile has platform :ios, '13.0'"
+            sed -i '' "/platform :ios/d" Podfile # Remove any existing platform line
+            sed -i '' "1i\\
+platform :ios, '13.0'" Podfile # Insert platform at the top
           else
             echo "Creating new Podfile with platform :ios, '13.0'"
             echo "platform :ios, '13.0'" > Podfile
