@@ -59,11 +59,34 @@ jobs:
           cd ios
           pod install --repo-update
 
+      - name: Setup Signing Certificate
+        env:
+          CERTIFICATE_BASE64: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_BASE64 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          # Create a temporary keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security set-keychain-settings -lut 21600 build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          
+          # Import the certificate
+          echo "$CERTIFICATE_BASE64" | base64 --decode > certificate.p12
+          security import certificate.p12 -k build.keychain -P "$CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          
+          # Set the keychain as default
+          security default-keychain -s build.keychain
+
       - name: Build iOS App
         env:
           DEVELOPER_DIR: /Applications/Xcode_15.4.app/Contents/Developer
+          PROVISIONING_PROFILE_PATH: ${{ secrets.PROVISIONING_PROFILE_PATH }}
         run: |
           cd ios
+          # Ensure provisioning profile is in place
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo "${{ secrets.PROVISIONING_PROFILE_BASE64 }}" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
+          
           xcodebuild -workspace Runner.xcworkspace \
             -scheme Runner \
             -sdk iphoneos \
@@ -73,7 +96,8 @@ jobs:
             CODE_SIGN_STYLE="Manual" \
             CODE_SIGN_IDENTITY="iPhone Distribution" \
             PROVISIONING_PROFILE="${{ secrets.PROVISIONING_PROFILE_UUID }}" \
-            DEVELOPMENT_TEAM="T72CZ82T9L"
+            DEVELOPMENT_TEAM="T72CZ82T9L" \
+            -allowProvisioningUpdates
 
       - name: Export IPA
         run: |
@@ -94,7 +118,7 @@ jobs:
               <key>provisioningProfiles</key>
               <dict>
                   <key>com.atvandbuggy.sales.dev</key>
-                  <string>match AppStore com.atvandbuggy.sales.dev</string>
+                  <string>${{ secrets.PROVISIONING_PROFILE_UUID }}</string>
               </dict>
               <key>uploadBitcode</key>
               <false/>
