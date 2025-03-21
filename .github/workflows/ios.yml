@@ -65,16 +65,22 @@ jobs:
           CERTIFICATE_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_PASSWORD }}
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
         run: |
-          # Verify secrets are set
-          if [ -z "$CERTIFICATE_BASE64" ]; then
-            echo "Error: CERTIFICATE_BASE64 is not set. Please add it to GitHub secrets."
+          # Debug: Check if secrets are set (without exposing values)
+          echo "Checking secrets..."
+          if [ -z "${CERTIFICATE_BASE64+x}" ]; then
+            echo "Error: CERTIFICATE_BASE64 is unset. Expected secret: IOS_DISTRIBUTION_CERTIFICATE_BASE64"
             exit 1
+          else
+            echo "CERTIFICATE_BASE64 is set (length: ${#CERTIFICATE_BASE64})"
           fi
-          if [ -z "$KEYCHAIN_PASSWORD" ]; then
-            echo "Error: KEYCHAIN_PASSWORD is not set. Please add it to GitHub secrets."
+          if [ -z "${KEYCHAIN_PASSWORD+x}" ]; then
+            echo "Error: KEYCHAIN_PASSWORD is unset. Expected secret: KEYCHAIN_PASSWORD"
             exit 1
+          else
+            echo "KEYCHAIN_PASSWORD is set (length: ${#KEYCHAIN_PASSWORD})"
           fi
-          
+          echo "CERTIFICATE_PASSWORD is ${CERTIFICATE_PASSWORD:-'not set (optional)'}"
+
           # Create a temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
           security set-keychain-settings -lut 21600 build.keychain
