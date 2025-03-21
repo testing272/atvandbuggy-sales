@@ -44,15 +44,13 @@ jobs:
             fi
           else
             echo "Creating new Podfile with platform :ios, '13.0'"
-            cat > Podfile <<EOF
-platform :ios, '13.0'
-install! 'cocoapods', :deterministic_uuids => false
-target 'Runner' do
-  use_frameworks!
-  use_modular_headers!
-  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
-end
-EOF
+            echo "platform :ios, '13.0'" > Podfile
+            echo "install! 'cocoapods', :deterministic_uuids => false" >> Podfile
+            echo "target 'Runner' do" >> Podfile
+            echo "  use_frameworks!" >> Podfile
+            echo "  use_modular_headers!" >> Podfile
+            echo "  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))" >> Podfile
+            echo "end" >> Podfile
           fi
 
       - name: Install CocoaPods
