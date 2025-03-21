@@ -44,7 +44,7 @@ jobs:
             fi
           else
             echo "Creating new Podfile with platform :ios, '13.0'"
-            cat > Podfile << EOF
+            cat > Podfile << 'EOF'
 platform :ios, '13.0'
 install! 'cocoapods', :deterministic_uuids => false
 target 'Runner' do
