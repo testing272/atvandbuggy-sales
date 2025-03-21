@@ -65,6 +65,16 @@ jobs:
           CERTIFICATE_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_PASSWORD }}
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
         run: |
+          # Verify secrets are set
+          if [ -z "$CERTIFICATE_BASE64" ]; then
+            echo "Error: CERTIFICATE_BASE64 is not set. Please add it to GitHub secrets."
+            exit 1
+          fi
+          if [ -z "$KEYCHAIN_PASSWORD" ]; then
+            echo "Error: KEYCHAIN_PASSWORD is not set. Please add it to GitHub secrets."
+            exit 1
+          fi
+          
           # Create a temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
           security set-keychain-settings -lut 21600 build.keychain
@@ -72,15 +82,21 @@ jobs:
           
           # Import the certificate
           echo "$CERTIFICATE_BASE64" | base64 --decode > certificate.p12
-          security import certificate.p12 -k build.keychain -P "$CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          if [ ! -s certificate.p12 ]; then
+            echo "Error: Decoded certificate.p12 is empty or invalid."
+            exit 1
+          fi
+          security import certificate.p12 -k build.keychain -P "${CERTIFICATE_PASSWORD:-}" -T /usr/bin/codesign
           
           # Set the keychain as default
           security default-keychain -s build.keychain
+          
+          # Verify certificate import
+          security find-identity -v -p codesigning build.keychain
 
       - name: Build iOS App
         env:
           DEVELOPER_DIR: /Applications/Xcode_15.4.app/Contents/Developer
-          PROVISIONING_PROFILE_PATH: ${{ secrets.PROVISIONING_PROFILE_PATH }}
         run: |
           cd ios
           # Ensure provisioning profile is in place
