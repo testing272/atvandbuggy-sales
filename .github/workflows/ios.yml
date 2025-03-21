@@ -3,10 +3,11 @@ on:
   push:
     branches:
       - your-new-branch-name
+
 jobs:
-  build:
+  build-and-deploy:
     name: Build and Deploy iOS
-    runs-on: macos-latest  # Updated to the correct runner label
+    runs-on: macos-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -18,189 +19,35 @@ jobs:
           channel: stable
           architecture: x64
 
-      - name: Verify Flutter Version
-        run: flutter --version
-
-      - name: Locate Project Directory
-        run: |
-          echo "Initial directory: $(pwd)"
-          ls -la
-          # Verify repository name
-          REPO_NAME=$(basename "$GITHUB_REPOSITORY")
-          echo "Repository name: $REPO_NAME"
-          if [ "$REPO_NAME" != "atvandbuggy-sales" ]; then
-            echo "Error: Expected repository name 'atvandbuggy-sales', found '$REPO_NAME'. Ensure you're running on the correct repository."
-            exit 1
-          fi
-          # Find pubspec.yaml
-          PROJECT_DIR=$(find . -name "pubspec.yaml" -exec dirname {} \; | head -n 1)
-          if [ -z "$PROJECT_DIR" ]; then
-            echo "Error: No pubspec.yaml found in repository."
-            exit 1
-          fi
-          if [ "$PROJECT_DIR" != "." ]; then
-            echo "Switching to project directory: $PROJECT_DIR"
-            cd "$PROJECT_DIR"
-          fi
-          echo "Working directory set to: $(pwd)"
-          ls -la
-          # Verify project name
-          PROJECT_NAME=$(grep "^name:" pubspec.yaml | awk '{print $2}' | tr -d '\r')
-          echo "Project name: $PROJECT_NAME"
-          if [ "$PROJECT_NAME" != "atvandbuggy_sales_app" ]; then
-            echo "Error: Expected project name 'atvandbuggy_sales_app', found '$PROJECT_NAME'."
-            exit 1
-          fi
-
       - name: Install Flutter Dependencies
         run: |
           flutter pub get
-          flutter pub upgrade --major-versions || echo "Some packages could not be upgraded due to constraints"
 
       - name: Ensure iOS Setup
         run: |
-          echo "Checking for iOS setup files..."
-          ls -la ios/ || echo "ios/ directory missing"
-          ls -la .ios/ || echo ".ios/ directory missing"
           # If ios or .ios is missing, regenerate them
-          if [ ! -d "ios" ] || [ ! -d ".ios" ] || [ ! -f ".ios/Flutter/podhelper.rb" ]; then
-            echo "iOS setup incomplete or missing. Regenerating..."
+          if [ ! -d "ios" ] || [ ! -d ".ios" ]; then
+            echo "iOS setup missing. Regenerating..."
             rm -rf ios .ios
             flutter create --platforms=ios --org com.atvandbuggy --project-name atvandbuggy_sales_app .
             flutter pub get
-            # Verify .ios/Flutter/podhelper.rb exists
-            if [ ! -f ".ios/Flutter/podhelper.rb" ]; then
-              echo "Warning: .ios/Flutter/podhelper.rb not created after flutter create. Creating minimal setup..."
-              mkdir -p .ios/Flutter
-              # Create a minimal podhelper.rb as a fallback
-              cat << 'EOF' > .ios/Flutter/podhelper.rb
-def flutter_install_all_ios_pods(flutter_application_path)
-  pod 'Flutter', :path => File.join(flutter_application_path, '.ios', 'Flutter')
-end
-EOF
-            fi
           fi
-          echo "iOS setup verified:"
-          ls -la ios/
-          ls -la .ios/Flutter/
 
       - name: Install CocoaPods
         run: |
-          sudo gem install cocoapods -v 1.15.2 --user-install
-          export PATH="$HOME/.gem/ruby/3.0.0/bin:$PATH"
+          sudo gem install cocoapods -v 1.15.2
           pod --version
 
-      - name: Fix Podfile and Install Pods
+      - name: Install Pods
         run: |
           cd ios
-          # If Podfile exists, back it up; otherwise, create a new one
-          if [ -f "Podfile" ]; then
-            cp Podfile Podfile.bak
-          fi
-          # Check if podhelper.rb exists and use it; otherwise, use a minimal Podfile
-          if [ -f "../.ios/Flutter/podhelper.rb" ]; then
-            cat << 'EOF' > Podfile
-platform :ios, '14.0'
-install! 'cocoapods', :deterministic_uuids => false
-
-flutter_application_path = File.expand_path('..', File.dirname(File.realpath(__FILE__)))
-load File.join(flutter_application_path, '.ios', 'Flutter', 'podhelper.rb')
-
-target 'Runner' do
-  use_frameworks!
-  use_modular_headers!
-  flutter_install_all_ios_pods(flutter_application_path)
-end
-
-post_install do |installer|
-  installer.pods_project.targets.each do |target|
-    flutter_additional_ios_build_settings(target)
-    target.build_configurations.each do |config|
-      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
-    end
-  end
-end
-EOF
-          else
-            echo "Warning: podhelper.rb not found, using minimal Podfile..."
-            cat << 'EOF' > Podfile
-platform :ios, '14.0'
-install! 'cocoapods', :deterministic_uuids => false
-
-target 'Runner' do
-  use_frameworks!
-  use_modular_headers!
-  pod 'Flutter', :path => '../.ios/Flutter'
-end
-
-post_install do |installer|
-  installer.pods_project.targets.each do |target|
-    target.build_configurations.each do |config|
-      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
-    end
-  end
-end
-EOF
-          fi
-          pod install --repo-update || {
-            echo "Pod install failed, retrying after cleaning..."
-            rm -rf Podfile.lock Pods
-            pod install --repo-update
-          }
-
-      - name: Update Deployment Target in Xcode Project
-        run: |
-          cd ios
-          sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = [0-9][0-9]*\.[0-9]/IPHONEOS_DEPLOYMENT_TARGET = 14.0/g' Runner.xcodeproj/project.pbxproj || echo "Deployment target already updated"
-          grep "IPHONEOS_DEPLOYMENT_TARGET" Runner.xcodeproj/project.pbxproj
-
-      - name: Set Bundle ID
-        run: |
-          cd ios
-          plutil -replace CFBundleIdentifier -string "com.atvandbuggy.sales.dev" Runner/Info.plist || {
-            echo "Setting bundle ID manually..."
-            plutil -replace CFBundleIdentifier -string "com.atvandbuggy.sales.dev" Runner/Info.plist
-          }
-          plutil -p Runner/Info.plist | grep CFBundleIdentifier
-
-      - name: Import Signing Certificates
-        env:
-          CERTIFICATE_P12: ${{ secrets.CERTIFICATE_P12 }}
-          CERTIFICATE_PASSWORD: ${{ secrets.CERTIFICATE_PASSWORD }}
-          PROVISIONING_PROFILE: ${{ secrets.PROVISIONING_PROFILE }}
-        run: |
-          security unlock-keychain -p "" login.keychain || echo "Keychain unlock skipped"
-          if [ -z "$CERTIFICATE_P12" ]; then
-            echo "Error: CERTIFICATE_P12 is empty."
-            exit 1
-          fi
-          echo "$CERTIFICATE_P12" | base64 --decode > certificate.p12 || {
-            echo "Failed to decode CERTIFICATE_P12."
-            exit 1
-          }
-          security import certificate.p12 -k login.keychain -P "$CERTIFICATE_PASSWORD" -T /usr/bin/codesign
-          security find-identity -v -p codesign login.keychain > identities.txt
-          cat identities.txt
-          CERT_IDENTITY=$(grep "iPhone Distribution" identities.txt | grep "T72CZ82T9L" | awk '{print $2}' || echo "")
-          if [ -z "$CERT_IDENTITY" ]; then
-            echo "Error: No 'iPhone Distribution' certificate for T72CZ82T9L found."
-            exit 1
-          fi
-          echo "Found iPhone Distribution certificate: $CERT_IDENTITY"
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          echo "$PROVISIONING_PROFILE" | base64 --decode > profile.mobileprovision
-          PROFILE_UUID=$(security cms -D -i profile.mobileprovision | plutil -extract UUID raw -)
-          echo "Provisioning Profile UUID: $PROFILE_UUID"
-          cp profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/"$PROFILE_UUID.mobileprovision"
-          ls -l ~/Library/MobileDevice/Provisioning\ Profiles/
+          pod install --repo-update
 
       - name: Build iOS App
         env:
           DEVELOPER_DIR: /Applications/Xcode_15.4.app/Contents/Developer
         run: |
           cd ios
-          PROFILE_UUID=$(security cms -D -i ~/Library/MobileDevice/Provisioning\ Profiles/*.mobileprovision | plutil -extract UUID raw -)
-          echo "Using Provisioning Profile UUID: $PROFILE_UUID"
           xcodebuild -workspace Runner.xcworkspace \
             -scheme Runner \
             -sdk iphoneos \
@@ -209,7 +56,7 @@ EOF
             archive \
             CODE_SIGN_STYLE="Manual" \
             CODE_SIGN_IDENTITY="iPhone Distribution" \
-            PROVISIONING_PROFILE="$PROFILE_UUID" \
+            PROVISIONING_PROFILE="${{ secrets.PROVISIONING_PROFILE_UUID }}" \
             DEVELOPMENT_TEAM="T72CZ82T9L"
 
       - name: Export IPA
@@ -252,7 +99,6 @@ EOF
           API_KEY_ID: ${{ secrets.API_KEY_ID }}
           API_ISSUER_ID: ${{ secrets.API_ISSUER_ID }}
           API_KEY_BASE64: ${{ secrets.API_KEY_BASE64 }}
-          APPLE_APP_ID: "6736747628"
         run: |
           echo "${API_KEY_BASE64}" | base64 --decode > api_key.p8
           xcrun altool --upload-app \
