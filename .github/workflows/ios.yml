@@ -32,22 +32,27 @@ jobs:
             flutter create --platforms=ios --org com.atvandbuggy --project-name atvandbuggy_sales_app .
             flutter pub get
           fi
-          # Ensure Podfile has the correct platform version
+          # Move to ios directory
           cd ios
+          # Check and update or create Podfile
           if [ -f "Podfile" ]; then
             echo "Updating Podfile with platform :ios, '13.0'"
-            sed -i '' "s/platform :ios.*/platform :ios, '13.0'/" Podfile || echo "platform :ios, '13.0'" >> Podfile
+            if ! grep -q "platform :ios" Podfile; then
+              echo "platform :ios, '13.0'" >> Podfile
+            else
+              sed -i '' "s/platform :ios.*/platform :ios, '13.0'/" Podfile
+            fi
           else
             echo "Creating new Podfile with platform :ios, '13.0'"
-            cat << EOF > Podfile
-            platform :ios, '13.0'
-            install! 'cocoapods', :deterministic_uuids => false
-            target 'Runner' do
-              use_frameworks!
-              use_modular_headers!
-              flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
-            end
-            EOF
+            cat > Podfile << EOF
+platform :ios, '13.0'
+install! 'cocoapods', :deterministic_uuids => false
+target 'Runner' do
+  use_frameworks!
+  use_modular_headers!
+  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+end
+EOF
           fi
 
       - name: Install CocoaPods
