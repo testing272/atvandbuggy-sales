@@ -37,8 +37,7 @@ jobs:
           if [ -f "Podfile" ]; then
             echo "Ensuring Podfile has platform :ios, '13.0'"
             sed -i '' "/platform :ios/d" Podfile # Remove any existing platform line
-            sed -i '' "1i\\
-platform :ios, '13.0'" Podfile # Insert platform at the top
+            echo "platform :ios, '13.0'" | cat - Podfile > temp && mv temp Podfile # Prepend platform line
           else
             echo "Creating new Podfile with platform :ios, '13.0'"
             echo "platform :ios, '13.0'" > Podfile
