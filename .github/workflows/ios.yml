@@ -33,14 +33,28 @@ jobs:
           cd ios
           if [ -f "Podfile" ]; then
             sed -i '' "/platform :ios/d" Podfile
-            echo "platform :ios, '13.0'" | cat - Podfile > temp && mv temp Podfile
+            echo "platform :ios, '12.0'" | cat - Podfile > temp && mv temp Podfile
+            echo "post_install do |installer|" >> Podfile
+            echo "  installer.pods_project.targets.each do |target|" >> Podfile
+            echo "    target.build_configurations.each do |config|" >> Podfile
+            echo "      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '12.0'" >> Podfile
+            echo "    end" >> Podfile
+            echo "  end" >> Podfile
+            echo "end" >> Podfile
           else
-            echo "platform :ios, '13.0'" > Podfile
+            echo "platform :ios, '12.0'" > Podfile
             echo "install! 'cocoapods', :deterministic_uuids => false" >> Podfile
             echo "target 'Runner' do" >> Podfile
             echo "  use_frameworks!" >> Podfile
             echo "  use_modular_headers!" >> Podfile
             echo "  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))" >> Podfile
+            echo "end" >> Podfile
+            echo "post_install do |installer|" >> Podfile
+            echo "  installer.pods_project.targets.each do |target|" >> Podfile
+            echo "    target.build_configurations.each do |config|" >> Podfile
+            echo "      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '12.0'" >> Podfile
+            echo "    end" >> Podfile
+            echo "  end" >> Podfile
             echo "end" >> Podfile
           fi
 
@@ -65,6 +79,14 @@ jobs:
           fi
           echo "API key file created at /tmp/authkey.p8"
 
+      - name: Debug Bundle ID and Signing
+        run: |
+          cd ios/Runner
+          echo "Bundle ID in Info.plist:"
+          plutil -p Info.plist | grep CFBundleIdentifier
+          echo "Xcode project settings:"
+          cat ../Runner.xcodeproj/project.pbxproj | grep -i "PRODUCT_BUNDLE_IDENTIFIER\|DEVELOPMENT_TEAM"
+
       - name: Build iOS App with Automatic Signing
         env:
           DEVELOPER_DIR: /Applications/Xcode_15.4.app/Contents/Developer
@@ -79,7 +101,21 @@ jobs:
           security set-keychain-settings -t 3600 build.keychain
           security default-keychain -s build.keychain
 
-          # Authenticate with Apple ID
+          # Create authentication file
+          cat << EOF > auth.plist
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>username</key>
+              <string>$APPLE_ID</string>
+              <key>password</key>
+              <string>$APPLE_ID_PASSWORD</string>
+          </dict>
+          </plist>
+          EOF
+
+          # Authenticate and build
           echo "Authenticating with Apple ID..."
           xcrun xcodebuild -workspace Runner.xcworkspace \
             -scheme Runner \
@@ -90,6 +126,9 @@ jobs:
             CODE_SIGN_STYLE="Automatic" \
             DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
             -allowProvisioningUpdates \
+            -authenticationKeyPath /tmp/authkey.p8 \
+            -authenticationKeyID "${{ secrets.API_KEY_ID }}" \
+            -authenticationKeyIssuerID "${{ secrets.API_ISSUER_ID }}" \
             -verbose
 
       - name: Export and Upload to TestFlight
