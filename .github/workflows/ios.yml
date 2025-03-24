@@ -33,13 +33,11 @@ jobs:
             flutter pub get
           fi
           cd ios
-          # Overwrite Podfile with Flutter-compatible version and iOS 13.0
+          # Overwrite Podfile with Flutter-compatible version
           cat << EOF > Podfile
-          # Load Flutter's podhelper
           install! 'cocoapods', :deterministic_uuids => false
           platform :ios, '13.0'
 
-          # Include Flutter podhelper
           flutter_root = File.expand_path(ENV['FLUTTER_ROOT'] || '$FLUTTER_ROOT')
           require File.join(flutter_root, 'packages', 'flutter_tools', 'bin', 'podhelper.rb')
 
@@ -59,6 +57,11 @@ jobs:
           EOF
           cat Podfile  # Print Podfile for debugging
 
+          # Ensure correct bundle ID in Info.plist
+          cd Runner
+          plutil -replace CFBundleIdentifier -string "com.atvandbuggy.atvandbuggy_sales_app" Info.plist
+          plutil -p Info.plist | grep CFBundleIdentifier  # Verify
+
       - name: Install CocoaPods
         run: |
           sudo gem install cocoapods -v 1.15.2
@@ -68,6 +71,10 @@ jobs:
         run: |
           cd ios
           pod install --repo-update
+
+      - name: Install Fastlane
+        run: |
+          sudo gem install fastlane -NV
 
       - name: Setup App Store Connect API Key
         env:
@@ -88,6 +95,14 @@ jobs:
           echo "Xcode project settings:"
           cat ../Runner.xcodeproj/project.pbxproj | grep -i "PRODUCT_BUNDLE_IDENTIFIER\|DEVELOPMENT_TEAM"
 
+      - name: Authenticate with Apple ID
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+        run: |
+          fastlane spaceauth -u "$APPLE_ID" <<< "$APPLE_ID_PASSWORD"
+          echo "Authentication completed."
+
       - name: Build iOS App with Automatic Signing
         env:
           DEVELOPER_DIR: /Applications/Xcode_15.4.app/Contents/Developer
@@ -102,8 +117,8 @@ jobs:
           security set-keychain-settings -t 3600 build.keychain
           security default-keychain -s build.keychain
 
-          # Authenticate and build
-          echo "Authenticating with Apple ID..."
+          # Build with automatic signing
+          echo "Building with automatic signing..."
           xcrun xcodebuild -workspace Runner.xcworkspace \
             -scheme Runner \
             -sdk iphoneos \
