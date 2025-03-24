@@ -54,20 +54,31 @@ jobs:
           cd ios
           pod install --repo-update
 
+      - name: Setup App Store Connect API Key
+        env:
+          API_KEY_BASE64: ${{ secrets.API_KEY_BASE64 }}
+        run: |
+          echo "$API_KEY_BASE64" | base64 --decode > /tmp/authkey.p8
+          if [ ! -s /tmp/authkey.p8 ]; then
+            echo "Error: Decoded API key file is empty or invalid."
+            exit 1
+          fi
+          echo "API key file created at /tmp/authkey.p8"
+
       - name: Build iOS App with Automatic Signing
         env:
           DEVELOPER_DIR: /Applications/Xcode_15.4.app/Contents/Developer
-          APPLE_ID_USERNAME: ${{ secrets.APPLE_ID_USERNAME }}
-          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          DEVELOPMENT_TEAM: ${{ secrets.DEVELOPMENT_TEAM }}
         run: |
           cd ios
-          # Set up keychain for automatic signing
+          # Set up keychain
           security create-keychain -p "temp" build.keychain
           security unlock-keychain -p "temp" build.keychain
           security set-keychain-settings -t 3600 build.keychain
 
-          # Authenticate with Apple ID for automatic signing
-          echo "Authenticating with Apple ID..."
+          # Build with automatic signing
+          echo "Building with automatic signing..."
           xcrun xcodebuild -allowProvisioningUpdates \
             -workspace Runner.xcworkspace \
             -scheme Runner \
@@ -76,12 +87,16 @@ jobs:
             -archivePath $GITHUB_WORKSPACE/build/Runner.xcarchive \
             clean archive \
             CODE_SIGN_STYLE="Automatic" \
-            DEVELOPMENT_TEAM="T72CZ82T9L" \
-            -authenticationKeyPath /tmp/authkey.p8 \
-            -authenticationKeyID ${{ secrets.APP_STORE_CONNECT_KEY_ID }} \
-            -authenticationKeyIssuerID ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+            DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
+            -authenticationMethod "APPLE_ID" \
+            -authenticationUsername "$APPLE_ID"
 
-      - name: Export IPA
+      - name: Export and Upload to TestFlight
+        env:
+          DEVELOPER_DIR: /Applications/Xcode_15.4.app/Contents/Developer
+          API_ISSUER_ID: ${{ secrets.API_ISSUER_ID }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          DEVELOPMENT_TEAM: ${{ secrets.DEVELOPMENT_TEAM }}
         run: |
           cd ios
           cat << EOF > ExportOptions.plist
@@ -92,32 +107,21 @@ jobs:
               <key>method</key>
               <string>app-store</string>
               <key>teamID</key>
-              <string>T72CZ82T9L</string>
+              <string>$DEVELOPMENT_TEAM</string>
               <key>signingStyle</key>
               <string>automatic</string>
+              <key>destination</key>
+              <string>upload</string>
           </dict>
           </plist>
           EOF
 
-          xcodebuild -exportArchive \
+          # Export and upload directly to TestFlight
+          xcrun xcodebuild -exportArchive \
             -archivePath $GITHUB_WORKSPACE/build/Runner.xcarchive \
             -exportOptionsPlist ExportOptions.plist \
             -exportPath $GITHUB_WORKSPACE/build \
-            -allowProvisioningUpdates
-
-      - name: Deploy to TestFlight
-        env:
-          APP_STORE_CONNECT_KEY: ${{ secrets.APP_STORE_CONNECT_KEY }}
-          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
-          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
-        run: |
-          echo "$APP_STORE_CONNECT_KEY" | base64 --decode > /tmp/authkey.p8
-          xcrun xcodebuild -exportArchive \
-            -archivePath $GITHUB_WORKSPACE/build/Runner.xcarchive \
-            -exportOptionsPlist ios/ExportOptions.plist \
-            -exportPath $GITHUB_WORKSPACE/build \
-            -authenticationKeyPath /tmp/authkey.p8 \
-            -authenticationKeyID "$APP_STORE_CONNECT_KEY_ID" \
-            -authenticationKeyIssuerID "$APP_STORE_CONNECT_ISSUER_ID" \
             -allowProvisioningUpdates \
-            -destination "upload"
+            -authenticationKeyPath /tmp/authkey.p8 \
+            -authenticationKeyID "${{ secrets.API_KEY_ID }}" \
+            -authenticationKeyIssuerID "$API_ISSUER_ID"
