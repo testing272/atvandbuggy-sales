@@ -1,12 +1,11 @@
-name: Build and Deploy iOS App to TestFlight
+name: Build and Deploy iOS App to TestFlight with API Key
 on:
   push:
     branches:
-      - your-new-branch-name
+      - your-new-branch-name 
 
 jobs:
   build-and-deploy:
-    name: Build and Deploy iOS
     runs-on: macos-latest
     steps:
       - name: Checkout Repository
@@ -25,21 +24,17 @@ jobs:
 
       - name: Ensure iOS Setup
         run: |
-          # If ios or .ios is missing, regenerate them
           if [ ! -d "ios" ] || [ ! -d ".ios" ]; then
             echo "iOS setup missing. Regenerating..."
             rm -rf ios .ios
             flutter create --platforms=ios --org com.atvandbuggy --project-name atvandbuggy_sales_app .
             flutter pub get
           fi
-          # Move to ios directory and ensure Podfile has platform :ios, '13.0'
           cd ios
           if [ -f "Podfile" ]; then
-            echo "Ensuring Podfile has platform :ios, '13.0'"
-            sed -i '' "/platform :ios/d" Podfile # Remove any existing platform line
-            echo "platform :ios, '13.0'" | cat - Podfile > temp && mv temp Podfile # Prepend platform line
+            sed -i '' "/platform :ios/d" Podfile
+            echo "platform :ios, '13.0'" | cat - Podfile > temp && mv temp Podfile
           else
-            echo "Creating new Podfile with platform :ios, '13.0'"
             echo "platform :ios, '13.0'" > Podfile
             echo "install! 'cocoapods', :deterministic_uuids => false" >> Podfile
             echo "target 'Runner' do" >> Podfile
@@ -59,52 +54,32 @@ jobs:
           cd ios
           pod install --repo-update
 
-      - name: Setup Signing Certificate
-        env:
-          CERTIFICATE_P12: ${{ secrets.CERTIFICATE_P12 }}
-          CERTIFICATE_PASSWORD: ${{ secrets.CERTIFICATE_PASSWORD }}
-        run: |
-          # Debug: Check if secrets are set and non-empty
-          echo "Checking secrets..."
-          if [ -z "${CERTIFICATE_P12+x}" ] || [ -z "$CERTIFICATE_P12" ]; then
-            echo "Error: CERTIFICATE_P12 is unset or empty. Set CERTIFICATE_P12 in GitHub secrets with a valid base64-encoded .p12 file."
-            exit 1
-          else
-            echo "CERTIFICATE_P12 is set (length: ${#CERTIFICATE_P12})"
-          fi
-          echo "CERTIFICATE_PASSWORD is ${CERTIFICATE_PASSWORD:-'not set (optional)'}"
-
-          # Import certificate into the default login keychain
-          echo "$CERTIFICATE_P12" | base64 --decode > certificate.p12
-          if [ ! -s certificate.p12 ]; then
-            echo "Error: Decoded certificate.p12 is empty or invalid. Ensure CERTIFICATE_P12 contains a valid base64-encoded .p12 file."
-            exit 1
-          fi
-          security import certificate.p12 -k ~/Library/Keychains/login.keychain-db -P "${CERTIFICATE_PASSWORD:-}" -T /usr/bin/codesign
-
-          # Verify certificate import
-          security find-identity -v -p codesigning ~/Library/Keychains/login.keychain-db
-
-      - name: Build iOS App
+      - name: Build iOS App with Automatic Signing
         env:
           DEVELOPER_DIR: /Applications/Xcode_15.4.app/Contents/Developer
+          APPLE_ID_USERNAME: ${{ secrets.APPLE_ID_USERNAME }}
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
         run: |
           cd ios
-          # Ensure provisioning profile is in place
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          echo "${{ secrets.PROVISIONING_PROFILE_BASE64 }}" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
+          # Set up keychain for automatic signing
+          security create-keychain -p "temp" build.keychain
+          security unlock-keychain -p "temp" build.keychain
+          security set-keychain-settings -t 3600 build.keychain
 
-          xcodebuild -workspace Runner.xcworkspace \
+          # Authenticate with Apple ID for automatic signing
+          echo "Authenticating with Apple ID..."
+          xcrun xcodebuild -allowProvisioningUpdates \
+            -workspace Runner.xcworkspace \
             -scheme Runner \
             -sdk iphoneos \
             -configuration Release \
             -archivePath $GITHUB_WORKSPACE/build/Runner.xcarchive \
-            archive \
-            CODE_SIGN_STYLE="Manual" \
-            CODE_SIGN_IDENTITY="iPhone Distribution" \
-            PROVISIONING_PROFILE="${{ secrets.PROVISIONING_PROFILE_UUID }}" \
+            clean archive \
+            CODE_SIGN_STYLE="Automatic" \
             DEVELOPMENT_TEAM="T72CZ82T9L" \
-            -allowProvisioningUpdates
+            -authenticationKeyPath /tmp/authkey.p8 \
+            -authenticationKeyID ${{ secrets.APP_STORE_CONNECT_KEY_ID }} \
+            -authenticationKeyIssuerID ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
 
       - name: Export IPA
         run: |
@@ -118,19 +93,8 @@ jobs:
               <string>app-store</string>
               <key>teamID</key>
               <string>T72CZ82T9L</string>
-              <key>uploadBitcode</key>
-              <false/>
-              <key>compileBitcode</key>
-              <false/>
-              <key>uploadSymbols</key>
-              <true/>
               <key>signingStyle</key>
-              <string>manual</string>
-              <key>provisioningProfiles</key>
-              <dict>
-                  <key>com.atvandbuggy.atvandbuggy_sales_app</key>
-                  <string>${{ secrets.PROVISIONING_PROFILE_UUID }}</string>
-              </dict>
+              <string>automatic</string>
           </dict>
           </plist>
           EOF
@@ -143,11 +107,17 @@ jobs:
 
       - name: Deploy to TestFlight
         env:
-          APPLE_ID_USERNAME: ${{ secrets.APPLE_ID_USERNAME }}
-          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          APP_STORE_CONNECT_KEY: ${{ secrets.APP_STORE_CONNECT_KEY }}
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
         run: |
-          xcrun altool --upload-app \
-            -f $GITHUB_WORKSPACE/build/Runner.ipa \
-            -t ios \
-            -u "$APPLE_ID_USERNAME" \
-            -p "$APPLE_ID_PASSWORD"
+          echo "$APP_STORE_CONNECT_KEY" | base64 --decode > /tmp/authkey.p8
+          xcrun xcodebuild -exportArchive \
+            -archivePath $GITHUB_WORKSPACE/build/Runner.xcarchive \
+            -exportOptionsPlist ios/ExportOptions.plist \
+            -exportPath $GITHUB_WORKSPACE/build \
+            -authenticationKeyPath /tmp/authkey.p8 \
+            -authenticationKeyID "$APP_STORE_CONNECT_KEY_ID" \
+            -authenticationKeyIssuerID "$APP_STORE_CONNECT_ISSUER_ID" \
+            -allowProvisioningUpdates \
+            -destination "upload"
