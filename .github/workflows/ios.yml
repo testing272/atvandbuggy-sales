@@ -2,7 +2,7 @@ name: Build and Deploy iOS App to TestFlight
 on:
   push:
     branches:
-      - your-new-branch-name  
+      - your-new-branch-name  # Replace with your branch
 
 jobs:
   build-and-deploy:
@@ -90,9 +90,6 @@ jobs:
             CODE_SIGN_STYLE="Automatic" \
             DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
             -allowProvisioningUpdates \
-            -authenticationKeyPath /tmp/authkey.p8 \
-            -authenticationKeyID "${{ secrets.API_KEY_ID }}" \
-            -authenticationKeyIssuerID "${{ secrets.API_ISSUER_ID }}" \
             -verbose
 
       - name: Export and Upload to TestFlight
