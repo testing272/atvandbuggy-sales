@@ -1,4 +1,4 @@
-name: Build and Deploy iOS App to TestFlight with API Key
+name: Build and Deploy iOS App to TestFlight
 on:
   push:
     branches:
@@ -76,11 +76,11 @@ jobs:
           security create-keychain -p "temp" build.keychain
           security unlock-keychain -p "temp" build.keychain
           security set-keychain-settings -t 3600 build.keychain
+          security default-keychain -s build.keychain
 
           # Build with automatic signing
           echo "Building with automatic signing..."
-          xcrun xcodebuild -allowProvisioningUpdates \
-            -workspace Runner.xcworkspace \
+          xcrun xcodebuild -workspace Runner.xcworkspace \
             -scheme Runner \
             -sdk iphoneos \
             -configuration Release \
@@ -88,14 +88,14 @@ jobs:
             clean archive \
             CODE_SIGN_STYLE="Automatic" \
             DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
-            -authenticationMethod "APPLE_ID" \
-            -authenticationUsername "$APPLE_ID"
+            -allowProvisioningUpdates \
+            -verbose
 
       - name: Export and Upload to TestFlight
         env:
           DEVELOPER_DIR: /Applications/Xcode_15.4.app/Contents/Developer
           API_ISSUER_ID: ${{ secrets.API_ISSUER_ID }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
+          API_KEY_ID: ${{ secrets.API_KEY_ID }}
           DEVELOPMENT_TEAM: ${{ secrets.DEVELOPMENT_TEAM }}
         run: |
           cd ios
@@ -116,12 +116,13 @@ jobs:
           </plist>
           EOF
 
-          # Export and upload directly to TestFlight
+          # Export and upload to TestFlight
           xcrun xcodebuild -exportArchive \
             -archivePath $GITHUB_WORKSPACE/build/Runner.xcarchive \
             -exportOptionsPlist ExportOptions.plist \
             -exportPath $GITHUB_WORKSPACE/build \
             -allowProvisioningUpdates \
             -authenticationKeyPath /tmp/authkey.p8 \
-            -authenticationKeyID "${{ secrets.API_KEY_ID }}" \
-            -authenticationKeyIssuerID "$API_ISSUER_ID"
+            -authenticationKeyID "$API_KEY_ID" \
+            -authenticationKeyIssuerID "$API_ISSUER_ID" \
+            -verbose
