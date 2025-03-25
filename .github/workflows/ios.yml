@@ -47,9 +47,11 @@ jobs:
             end
           end
           EOF
-          # Set bundle ID
+          # Set consistent bundle ID
           cd Runner
           plutil -replace CFBundleIdentifier -string "com.atvandbuggy.atvandbuggy_sales_app" Info.plist
+          # Verify bundle ID
+          plutil -p Info.plist | grep CFBundleIdentifier
 
       - name: Install CocoaPods
         run: |
@@ -66,6 +68,15 @@ jobs:
             echo "Error: Decoded API key file is empty or invalid."
             exit 1
           fi
+          ls -lh /tmp/authkey.p8  # Verify file exists and has content
+
+      - name: Debug Xcode Project Settings
+        run: |
+          cd ios
+          echo "Bundle ID in Info.plist:"
+          plutil -p Runner/Info.plist | grep CFBundleIdentifier
+          echo "Xcode project settings:"
+          grep -i "PRODUCT_BUNDLE_IDENTIFIER\|DEVELOPMENT_TEAM" Runner.xcodeproj/project.pbxproj || echo "No matches found"
 
       - name: Build iOS App
         env:
@@ -77,6 +88,8 @@ jobs:
           security unlock-keychain -p "temp" build.keychain
           security set-keychain-settings -t 3600 build.keychain
           security default-keychain -s build.keychain
+          # Update project settings with team ID
+          sed -i '' "s/DEVELOPMENT_TEAM = \"\"/DEVELOPMENT_TEAM = \"$DEVELOPMENT_TEAM\"/g" Runner.xcodeproj/project.pbxproj
           # Build the archive
           xcrun xcodebuild -workspace Runner.xcworkspace \
             -scheme Runner \
@@ -86,7 +99,8 @@ jobs:
             clean archive \
             CODE_SIGN_STYLE="Automatic" \
             DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
-            -allowProvisioningUpdates
+            -allowProvisioningUpdates \
+            -verbose
 
       - name: Export and Upload to TestFlight
         env:
@@ -120,4 +134,5 @@ jobs:
             -allowProvisioningUpdates \
             -authenticationKeyPath /tmp/authkey.p8 \
             -authenticationKeyID "$API_KEY_ID" \
-            -authenticationKeyIssuerID "$API_ISSUER_ID"
+            -authenticationKeyIssuerID "$API_ISSUER_ID" \
+            -verbose
