@@ -47,11 +47,12 @@ jobs:
             end
           end
           EOF
-          # Set consistent bundle ID
+          # Set consistent bundle ID in Info.plist
           cd Runner
           plutil -replace CFBundleIdentifier -string "com.atvandbuggy.atvandbuggy_sales_app" Info.plist
-          # Verify bundle ID
-          plutil -p Info.plist | grep CFBundleIdentifier
+          # Update bundle ID in project file
+          cd ..
+          sed -i '' 's/PRODUCT_BUNDLE_IDENTIFIER = "[^"]*"/PRODUCT_BUNDLE_IDENTIFIER = "com.atvandbuggy.atvandbuggy_sales_app"/g' Runner.xcodeproj/project.pbxproj
 
       - name: Install CocoaPods
         run: |
@@ -68,7 +69,7 @@ jobs:
             echo "Error: Decoded API key file is empty or invalid."
             exit 1
           fi
-          ls -lh /tmp/authkey.p8  # Verify file exists and has content
+          ls -lh /tmp/authkey.p8  # Verify file exists
 
       - name: Debug Xcode Project Settings
         run: |
@@ -88,7 +89,7 @@ jobs:
           security unlock-keychain -p "temp" build.keychain
           security set-keychain-settings -t 3600 build.keychain
           security default-keychain -s build.keychain
-          # Update project settings with team ID
+          # Ensure team ID in project file
           sed -i '' "s/DEVELOPMENT_TEAM = \"\"/DEVELOPMENT_TEAM = \"$DEVELOPMENT_TEAM\"/g" Runner.xcodeproj/project.pbxproj
           # Build the archive
           xcrun xcodebuild -workspace Runner.xcworkspace \
