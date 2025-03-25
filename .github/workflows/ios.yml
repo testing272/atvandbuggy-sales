@@ -1,8 +1,9 @@
 name: Build and Deploy iOS App to TestFlight
+
 on:
   push:
     branches:
-      - your-new-branch-name  # Replace with your branch
+      - your-new-branch-name  # Replace with your branch name
 
 jobs:
   build-and-deploy:
@@ -19,12 +20,9 @@ jobs:
           architecture: x64
 
       - name: Install Flutter Dependencies
-        run: |
-          flutter pub get
+        run: flutter pub get
 
       - name: Ensure iOS Setup
-        env:
-          FLUTTER_ROOT: /Users/runner/hostedtoolcache/flutter/stable-3.24.3-x64
         run: |
           if [ ! -d "ios" ] || [ ! -d ".ios" ]; then
             echo "iOS setup missing. Regenerating..."
@@ -33,20 +31,14 @@ jobs:
             flutter pub get
           fi
           cd ios
-          # Overwrite Podfile with Flutter-compatible version
+          # Create a minimal Podfile for Flutter
           cat << EOF > Podfile
-          install! 'cocoapods', :deterministic_uuids => false
           platform :ios, '13.0'
-
-          flutter_root = File.expand_path(ENV['FLUTTER_ROOT'] || '$FLUTTER_ROOT')
-          require File.join(flutter_root, 'packages', 'flutter_tools', 'bin', 'podhelper.rb')
-
+          install! 'cocoapods', :deterministic_uuids => false
           target 'Runner' do
             use_frameworks!
             use_modular_headers!
-            flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
           end
-
           post_install do |installer|
             installer.pods_project.targets.each do |target|
               target.build_configurations.each do |config|
@@ -55,26 +47,15 @@ jobs:
             end
           end
           EOF
-          cat Podfile  # Print Podfile for debugging
-
-          # Ensure correct bundle ID in Info.plist
+          # Set bundle ID
           cd Runner
           plutil -replace CFBundleIdentifier -string "com.atvandbuggy.atvandbuggy_sales_app" Info.plist
-          plutil -p Info.plist | grep CFBundleIdentifier  # Verify
 
       - name: Install CocoaPods
         run: |
           sudo gem install cocoapods -v 1.15.2
-          pod --version
-
-      - name: Install Pods
-        run: |
           cd ios
           pod install --repo-update
-
-      - name: Install Fastlane
-        run: |
-          sudo gem install fastlane -NV
 
       - name: Setup App Store Connect API Key
         env:
@@ -85,40 +66,18 @@ jobs:
             echo "Error: Decoded API key file is empty or invalid."
             exit 1
           fi
-          echo "API key file created at /tmp/authkey.p8"
 
-      - name: Debug Bundle ID and Signing
-        run: |
-          cd ios/Runner
-          echo "Bundle ID in Info.plist:"
-          plutil -p Info.plist | grep CFBundleIdentifier
-          echo "Xcode project settings:"
-          cat ../Runner.xcodeproj/project.pbxproj | grep -i "PRODUCT_BUNDLE_IDENTIFIER\|DEVELOPMENT_TEAM"
-
-      - name: Authenticate with Apple ID
+      - name: Build iOS App
         env:
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
-        run: |
-          fastlane spaceauth -u "$APPLE_ID" <<< "$APPLE_ID_PASSWORD"
-          echo "Authentication completed."
-
-      - name: Build iOS App with Automatic Signing
-        env:
-          DEVELOPER_DIR: /Applications/Xcode_15.4.app/Contents/Developer
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
           DEVELOPMENT_TEAM: ${{ secrets.DEVELOPMENT_TEAM }}
         run: |
           cd ios
-          # Set up keychain
+          # Set up keychain for signing
           security create-keychain -p "temp" build.keychain
           security unlock-keychain -p "temp" build.keychain
           security set-keychain-settings -t 3600 build.keychain
           security default-keychain -s build.keychain
-
-          # Build with automatic signing
-          echo "Building with automatic signing..."
+          # Build the archive
           xcrun xcodebuild -workspace Runner.xcworkspace \
             -scheme Runner \
             -sdk iphoneos \
@@ -127,17 +86,16 @@ jobs:
             clean archive \
             CODE_SIGN_STYLE="Automatic" \
             DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
-            -allowProvisioningUpdates \
-            -verbose
+            -allowProvisioningUpdates
 
       - name: Export and Upload to TestFlight
         env:
-          DEVELOPER_DIR: /Applications/Xcode_15.4.app/Contents/Developer
-          API_ISSUER_ID: ${{ secrets.API_ISSUER_ID }}
-          API_KEY_ID: ${{ secrets.API_KEY_ID }}
           DEVELOPMENT_TEAM: ${{ secrets.DEVELOPMENT_TEAM }}
+          API_KEY_ID: ${{ secrets.API_KEY_ID }}
+          API_ISSUER_ID: ${{ secrets.API_ISSUER_ID }}
         run: |
           cd ios
+          # Create ExportOptions.plist
           cat << EOF > ExportOptions.plist
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -154,8 +112,7 @@ jobs:
           </dict>
           </plist>
           EOF
-
-          # Export and upload to TestFlight
+          # Export and upload
           xcrun xcodebuild -exportArchive \
             -archivePath $GITHUB_WORKSPACE/build/Runner.xcarchive \
             -exportOptionsPlist ExportOptions.plist \
@@ -163,5 +120,4 @@ jobs:
             -allowProvisioningUpdates \
             -authenticationKeyPath /tmp/authkey.p8 \
             -authenticationKeyID "$API_KEY_ID" \
-            -authenticationKeyIssuerID "$API_ISSUER_ID" \
-            -verbose
+            -authenticationKeyIssuerID "$API_ISSUER_ID"
